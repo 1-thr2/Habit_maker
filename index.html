@@ -52,6 +52,40 @@
     #mobileDemo:hover {
       transform: scale(1.05);
     }
+    
+    /* 탭 컨텐츠 관련 스타일 */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* 탭 클릭 애니메이션 */
+    .tab-btn {
+      transition: all 0.2s ease;
+    }
+    
+    .tab-btn:active {
+      transform: translateY(2px);
+    }
+    
+    /* 인증 버튼 클릭 효과 */
+    #checkInButton:active {
+      transform: scale(0.95);
+    }
+    
+    /* 체크인 완료 애니메이션 */
+    .checkin-animation {
+      animation: pulse 1s ease;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
 
     /* 능력치 바 애니메이션 */
     .stat-bar .bar-fill {
@@ -157,7 +191,7 @@
   </main>
   
   <!-- 모바일 탭 데모 영역 -->
-  <div id="mobileDemo" class="fixed bottom-20 right-4 z-50 shadow-lg rounded-lg overflow-hidden hidden md:block">
+  <div id="mobileDemo" class="fixed top-24 right-4 z-50 shadow-lg rounded-lg overflow-hidden hidden md:block">
     <div class="bg-white p-2 text-xs font-bold text-center border-b border-gray-200">
       앱 미리보기
     </div>
@@ -168,66 +202,166 @@
         <div class="bg-blue-600 text-white p-2 flex justify-between items-center">
           <div class="text-xs font-bold">목표 달성 or Die</div>
           <div class="flex items-center">
-            <div class="mr-2 text-xs bg-yellow-500 text-black px-1 py-0.5 rounded-full text-xs">Lv.3</div>
+            <div class="mr-2 text-xs bg-yellow-500 text-black px-1 py-0.5 rounded-full text-xs">Lv.<span id="previewLevel">3</span></div>
             <div class="flex items-center text-xs">
               <span class="mr-1">💰</span>
-              <span>85</span>
+              <span id="previewGold">85</span>
             </div>
           </div>
         </div>
         
         <!-- 앱 콘텐츠 -->
         <div class="p-2">
-          <div class="bg-gray-100 rounded-lg p-2 mb-2">
-            <div class="flex justify-between mb-1">
-              <div class="text-xxs text-gray-500">목표: 코딩 공부하기</div>
-              <div class="text-xxs text-green-600 font-bold">7일째 생존중</div>
+          <!-- 홈 화면 -->
+          <div id="homeTab" class="tab-content active">
+            <div class="bg-gray-100 rounded-lg p-2 mb-2">
+              <div class="flex justify-between mb-1">
+                <div class="text-xxs text-gray-500">목표: 코딩 공부하기</div>
+                <div class="text-xxs text-green-600 font-bold"><span id="survivalDays">7</span>일째 생존중</div>
+              </div>
+              
+              <div class="flex justify-center mb-2">
+                <div class="relative">
+                  <div class="text-4xl" id="characterEmoji">👨‍💻</div>
+                  <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xxs font-bold rounded-full w-3 h-3 flex items-center justify-center">
+                    <span id="notificationCount">3</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-1">
+                <div class="flex justify-between text-xxs mb-0.5">
+                  <span class="flex items-center">
+                    <span class="mr-0.5 text-blue-500">🧠</span>
+                    <span>지능</span>
+                  </span>
+                  <span><span id="intelligenceValue">50</span>/100</span>
+                </div>
+                <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div id="intelligenceBar" class="h-full bg-blue-500" style="width: 50%"></div>
+                </div>
+              </div>
+              
+              <div class="bg-red-50 p-1 rounded text-xxs text-center font-bold text-red-600 mb-1">
+                현재 예상 미래: <span id="predictedJob">전체 야근 개발자</span>
+              </div>
             </div>
             
-            <div class="flex justify-center mb-2">
-              <div class="relative">
-                <div class="text-4xl">👨‍💻</div>
-                <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xxs font-bold rounded-full w-3 h-3 flex items-center justify-center">
-                  3
+            <button id="checkInButton" class="w-full bg-blue-600 text-white font-bold py-1 text-xs rounded-lg mb-1 flex items-center justify-center">
+              <span class="mr-1">📸</span>
+              <span>오늘의 인증하기</span>
+            </button>
+          </div>
+          
+          <!-- 상점 화면 -->
+          <div id="shopTab" class="tab-content hidden">
+            <div class="text-xs font-bold mb-2">상점</div>
+            <div class="space-y-2">
+              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <div class="text-xl mr-2">☕</div>
+                    <div>
+                      <div class="font-bold text-xxs">맥심 커피</div>
+                      <div class="text-xxs text-gray-500">에너지 +5</div>
+                    </div>
+                  </div>
+                  <button class="item-buy bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="10">
+                    10 골드
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <div class="text-xl mr-2">📱</div>
+                    <div>
+                      <div class="font-bold text-xxs">중고 아이폰 SE</div>
+                      <div class="text-xxs text-gray-500">지능 +10, 사교성 -5</div>
+                    </div>
+                  </div>
+                  <button class="item-buy bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="50">
+                    50 골드
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <div class="text-xl mr-2">🍕</div>
+                    <div>
+                      <div class="font-bold text-xxs">도미노 피자</div>
+                      <div class="text-xxs text-gray-500">체력 +8, 건강 -3</div>
+                    </div>
+                  </div>
+                  <button class="item-buy bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="25">
+                    25 골드
+                  </button>
                 </div>
               </div>
             </div>
-            
-            <div class="mb-1">
-              <div class="flex justify-between text-xxs mb-0.5">
-                <span class="flex items-center">
-                  <span class="mr-0.5 text-blue-500">🧠</span>
-                  <span>지능</span>
-                </span>
-                <span>50/100</span>
-              </div>
-              <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full bg-blue-500" style="width: 50%"></div>
-              </div>
-            </div>
-            
-            <div class="bg-red-50 p-1 rounded text-xxs text-center font-bold text-red-600 mb-1">
-              현재 예상 미래: 전체 야근 개발자
-            </div>
           </div>
           
-          <button class="w-full bg-blue-600 text-white font-bold py-1 text-xs rounded-lg mb-1 flex items-center justify-center">
-            <span class="mr-1">📸</span>
-            <span>오늘의 인증하기</span>
-          </button>
+          <!-- 프로필 화면 -->
+          <div id="profileTab" class="tab-content hidden">
+            <div class="text-xs font-bold mb-2">프로필</div>
+            <div class="text-center mb-3">
+              <div class="text-3xl mb-1" id="profileEmoji">👨‍💻</div>
+              <div class="text-xs font-bold">레벨 <span id="profileLevel">3</span></div>
+            </div>
+            
+            <div class="space-y-2 text-xxs">
+              <div class="flex justify-between">
+                <span>목표 시작일:</span>
+                <span>2025-03-14</span>
+              </div>
+              <div class="flex justify-between">
+                <span>인증 성공:</span>
+                <span>87회</span>
+              </div>
+              <div class="flex justify-between">
+                <span>인증 실패:</span>
+                <span>3회</span>
+              </div>
+              <div class="flex justify-between">
+                <span>연속 인증:</span>
+                <span><span id="profileStreak">7</span>일</span>
+              </div>
+            </div>
+            
+            <div class="mt-3 bg-blue-50 p-2 rounded-lg">
+              <div class="text-xxs font-bold mb-1">현재 능력치</div>
+              <div class="space-y-1">
+                <div class="flex justify-between text-xxs">
+                  <span>지능:</span>
+                  <span><span id="profileIntelligence">50</span>/100</span>
+                </div>
+                <div class="flex justify-between text-xxs">
+                  <span>체력:</span>
+                  <span>35/100</span>
+                </div>
+                <div class="flex justify-between text-xxs">
+                  <span>창의력:</span>
+                  <span>42/100</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         <!-- 하단 탭 바 -->
         <div class="absolute bottom-0 left-0 right-0 bg-gray-800 text-white p-1 grid grid-cols-3 text-xxs">
-          <div class="flex flex-col items-center text-blue-400">
+          <div id="homeTabBtn" class="tab-btn flex flex-col items-center text-blue-400 cursor-pointer">
             <span class="text-base">🏠</span>
             <span>홈</span>
           </div>
-          <div class="flex flex-col items-center text-gray-400">
+          <div id="shopTabBtn" class="tab-btn flex flex-col items-center text-gray-400 cursor-pointer">
             <span class="text-base">🛒</span>
             <span>상점</span>
           </div>
-          <div class="flex flex-col items-center text-gray-400">
+          <div id="profileTabBtn" class="tab-btn flex flex-col items-center text-gray-400 cursor-pointer">
             <span class="text-base">👤</span>
             <span>프로필</span>
           </div>
@@ -1129,6 +1263,155 @@
       
       // 초기 슬라이드 로딩
       updateSlide(currentSlide);
+      
+      // 앱 미리보기 동작 스크립트
+      const activateAppPreview = () => {
+        // 탭 전환 기능
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            // 모든 탭 버튼 비활성화
+            tabBtns.forEach(b => {
+              b.classList.remove('text-blue-400');
+              b.classList.add('text-gray-400');
+            });
+            
+            // 클릭한 버튼 활성화
+            btn.classList.remove('text-gray-400');
+            btn.classList.add('text-blue-400');
+            
+            // 모든 탭 콘텐츠 숨기기
+            tabContents.forEach(content => {
+              content.classList.remove('active');
+              content.classList.add('hidden');
+            });
+            
+            // 클릭한 탭에 해당하는 콘텐츠 표시
+            let targetId = '';
+            if (btn.id === 'homeTabBtn') targetId = 'homeTab';
+            else if (btn.id === 'shopTabBtn') targetId = 'shopTab';
+            else if (btn.id === 'profileTabBtn') targetId = 'profileTab';
+            
+            document.getElementById(targetId).classList.remove('hidden');
+            document.getElementById(targetId).classList.add('active');
+          });
+        });
+        
+        // 인증하기 버튼 기능
+        const checkInButton = document.getElementById('checkInButton');
+        checkInButton.addEventListener('click', () => {
+          // 인증 버튼 클릭 애니메이션
+          const characterEmoji = document.getElementById('characterEmoji');
+          characterEmoji.classList.add('checkin-animation');
+          
+          // 골드 증가
+          const goldElement = document.getElementById('previewGold');
+          const currentGold = parseInt(goldElement.textContent);
+          goldElement.textContent = currentGold + 10;
+          
+          // 지능 능력치 증가
+          const intelligenceElement = document.getElementById('intelligenceValue');
+          const profileIntelligence = document.getElementById('profileIntelligence');
+          const intelligenceBar = document.getElementById('intelligenceBar');
+          const currentIntelligence = parseInt(intelligenceElement.textContent);
+          const newIntelligence = Math.min(currentIntelligence + 5, 100);
+          
+          intelligenceElement.textContent = newIntelligence;
+          profileIntelligence.textContent = newIntelligence;
+          intelligenceBar.style.width = newIntelligence + '%';
+          
+          // 생존 일수 증가
+          const survivalDays = document.getElementById('survivalDays');
+          const profileStreak = document.getElementById('profileStreak');
+          const currentDays = parseInt(survivalDays.textContent);
+          survivalDays.textContent = currentDays + 1;
+          profileStreak.textContent = currentDays + 1;
+          
+          // 알림 카운트 감소
+          const notificationCount = document.getElementById('notificationCount');
+          const currentCount = parseInt(notificationCount.textContent);
+          if (currentCount > 0) {
+            notificationCount.textContent = currentCount - 1;
+          }
+          
+          // 레벨업 기회
+          if (Math.random() > 0.7) {
+            const level = document.getElementById('previewLevel');
+            const profileLevel = document.getElementById('profileLevel');
+            const currentLevel = parseInt(level.textContent);
+            level.textContent = currentLevel + 1;
+            profileLevel.textContent = currentLevel + 1;
+            
+            // 레벨업 시 직업 예측 변경
+            const jobs = ['스타트업 4호 개발자', '네카라쿠배 개발자', '인공지능 전문가', '블록체인 개발자'];
+            const predictedJob = document.getElementById('predictedJob');
+            predictedJob.textContent = jobs[Math.floor(Math.random() * jobs.length)];
+          }
+          
+          // 애니메이션 클래스 제거
+          setTimeout(() => {
+            characterEmoji.classList.remove('checkin-animation');
+            checkInButton.textContent = '인증 완료!';
+            
+            setTimeout(() => {
+              checkInButton.innerHTML = '<span class="mr-1">📸</span><span>오늘의 인증하기</span>';
+            }, 2000);
+          }, 1000);
+        });
+        
+        // 상점 아이템 구매 기능
+        const itemBuyButtons = document.querySelectorAll('.item-buy');
+        itemBuyButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            const price = parseInt(button.getAttribute('data-price'));
+            const goldElement = document.getElementById('previewGold');
+            const currentGold = parseInt(goldElement.textContent);
+            
+            if (currentGold >= price) {
+              // 구매 성공
+              goldElement.textContent = currentGold - price;
+              button.textContent = '구매 완료!';
+              button.classList.remove('bg-blue-600');
+              button.classList.add('bg-green-600');
+              
+              // 지능 능력치 증가 (아이폰SE 구매 시)
+              if (price === 50) {
+                const intelligenceElement = document.getElementById('intelligenceValue');
+                const profileIntelligence = document.getElementById('profileIntelligence');
+                const intelligenceBar = document.getElementById('intelligenceBar');
+                const currentIntelligence = parseInt(intelligenceElement.textContent);
+                const newIntelligence = Math.min(currentIntelligence + 10, 100);
+                
+                intelligenceElement.textContent = newIntelligence;
+                profileIntelligence.textContent = newIntelligence;
+                intelligenceBar.style.width = newIntelligence + '%';
+              }
+              
+              setTimeout(() => {
+                button.textContent = price + ' 골드';
+                button.classList.remove('bg-green-600');
+                button.classList.add('bg-blue-600');
+              }, 2000);
+            } else {
+              // 골드 부족
+              button.textContent = '골드 부족!';
+              button.classList.remove('bg-blue-600');
+              button.classList.add('bg-red-600');
+              
+              setTimeout(() => {
+                button.textContent = price + ' 골드';
+                button.classList.remove('bg-red-600');
+                button.classList.add('bg-blue-600');
+              }, 2000);
+            }
+          });
+        });
+      };
+      
+      // 앱 미리보기 동작 활성화
+      activateAppPreview();
     });
   </script>
 </body>
