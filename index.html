@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>목표 달성 or Die</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  
+  <!-- 스타일 태그 안에 styles.css 내용 통합 -->
+  <style>
+    /* 기본 스타일 */
+    .text-xxs {
+      font-size: 0.65rem;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      min-height: calc(100vh - 120px);
+    }
+
+    /* 슬라이드 애니메이션 */
+    .slide-transition {
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .slide-exit {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+
+    .slide-enter {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+
+    .slide-active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* 모바일 앱 미리보기 애니메이션 */
+    #mobileDemo {
+      transition: transform 0.3s ease;
+    }
+
+    #mobileDemo:hover {
+      transform: scale(1.05);
+    }
+
+    /* 능력치 바 애니메이션 */
+    .stat-bar .bar-fill {
+      transition: width 1s ease;
+    }
+
+    /* 반응형 조정 */
+    @media (max-width: 640px) {
+      #mobileDemo {
+        display: none !important;
+      }
+      
+      main {
+        padding-top: 5rem;
+        padding-bottom: 2rem;
+      }
+    }
+
+    /* 앱 프리뷰 스크롤 */
+    .app-preview {
+      max-height: 500px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .app-preview::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .app-preview::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .app-preview::-webkit-scrollbar-thumb {
+      background: #c5c5c5;
+      border-radius: 3px;
+    }
+
+    /* 버튼 효과 */
+    button:not(:disabled) {
+      transition: all 0.2s;
+    }
+
+    button:not(:disabled):active {
+      transform: scale(0.98);
+    }
+
+    /* 직업 카드 애니메이션 */
+    .job-card {
+      transition: all 0.3s ease;
+    }
+
+    .job-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- 헤더 -->
+  <header class="bg-white p-4 border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-10">
+    <div class="flex justify-between items-center max-w-6xl mx-auto">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg font-bold">
+          H
+        </div>
+        <span class="font-bold text-sm md:text-lg">목표 달성 or Die</span>
+      </div>
+      <div id="slideCounter" class="text-sm text-gray-500">
+        슬라이드 1 / 7
+      </div>
+    </div>
+  </header>
+  
+  <!-- 슬라이드 컨테이너 -->
+  <main class="pt-16 pb-8 px-4 flex-1 flex flex-col items-center justify-center">
+    <div class="w-full max-w-6xl">
+      <div id="slideContainer" class="bg-white rounded-xl shadow-md overflow-hidden">
+        <!-- 슬라이드 제목 -->
+        <div id="slideTitle" class="bg-blue-600 text-white p-4">
+          <h2 class="text-xl font-bold">목표 달성 캐릭터 앱</h2>
+        </div>
+        
+        <!-- 슬라이드 내용 -->
+        <div id="slideContent" class="p-6 md:p-8">
+          <!-- 슬라이드 내용이 JS에서 동적으로 들어갑니다 -->
+        </div>
+        
+        <!-- 네비게이션 버튼 -->
+        <div class="flex justify-between p-4 border-t border-gray-200">
+          <button id="prevBtn" class="flex items-center text-gray-300 cursor-not-allowed" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            이전
+          </button>
+          <button id="nextBtn" class="flex items-center text-blue-500 hover:text-blue-700">
+            다음
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 모바일 탭 데모 영역 -->
+  <div id="mobileDemo" class="fixed bottom-20 right-4 z-50 shadow-lg rounded-lg overflow-hidden hidden md:block">
+    <div class="bg-white p-2 text-xs font-bold text-center border-b border-gray-200">
+      앱 미리보기
+    </div>
+    <div class="relative w-64 h-96 bg-gray-800">
+      <!-- 앱 화면 -->
+      <div class="bg-white h-full">
+        <!-- 상단 네비게이션 -->
+        <div class="bg-blue-600 text-white p-2 flex justify-between items-center">
+          <div class="text-xs font-bold">목표 달성 or Die</div>
+          <div class="flex items-center">
+            <div class="mr-2 text-xs bg-yellow-500 text-black px-1 py-0.5 rounded-full text-xs">Lv.3</div>
+            <div class="flex items-center text-xs">
+              <span class="mr-1">💰</span>
+              <span>85</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 앱 콘텐츠 -->
+        <div class="p-2">
+          <div class="bg-gray-100 rounded-lg p-2 mb-2">
+            <div class="flex justify-between mb-1">
+              <div class="text-xxs text-gray-500">목표: 코딩 공부하기</div>
+              <div class="text-xxs text-green-600 font-bold">7일째 생존중</div>
+            </div>
+            
+            <div class="flex justify-center mb-2">
+              <div class="relative">
+                <div class="text-4xl">👨‍💻</div>
+                <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xxs font-bold rounded-full w-3 h-3 flex items-center justify-center">
+                  3
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-1">
+              <div class="flex justify-between text-xxs mb-0.5">
+                <span class="flex items-center">
+                  <span class="mr-0.5 text-blue-500">🧠</span>
+                  <span>지능</span>
+                </span>
+                <span>50/100</span>
+              </div>
+              <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-500" style="width: 50%"></div>
+              </div>
+            </div>
+            
+            <div class="bg-red-50 p-1 rounded text-xxs text-center font-bold text-red-600 mb-1">
+              현재 예상 미래: 전체 야근 개발자
+            </div>
+          </div>
+          
+          <button class="w-full bg-blue-600 text-white font-bold py-1 text-xs rounded-lg mb-1 flex items-center justify-center">
+            <span class="mr-1">📸</span>
+            <span>오늘의 인증하기</span>
+          </button>
+        </div>
+        
+        <!-- 하단 탭 바 -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gray-800 text-white p-1 grid grid-cols-3 text-xxs">
+          <div class="flex flex-col items-center text-blue-400">
+            <span class="text-base">🏠</span>
+            <span>홈</span>
+          </div>
+          <div class="flex flex-col items-center text-gray-400">
+            <span class="text-base">🛒</span>
+            <span>상점</span>
+          </div>
+          <div class="flex flex-col items-center text-gray-400">
+            <span class="text-base">👤</span>
+            <span>프로필</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 푸터 -->
+  <footer class="bg-white p-4 border-t border-gray-200 text-center text-gray-500 text-sm">
+    © 2025 목표 달성 or Die 프로젝트
+  </footer>
+  
+  <!-- 통합된 JavaScript 코드 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 슬라이드 내용 정의
+      const slides = [
+        // 슬라이드 1: 메인 소개
+        {
+          id: 'intro',
+          title: '목표 달성 캐릭터 앱',
+          content: `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div class="text-center md:text-left">
+                <div class="mb-6 text-lg">습관 형성 × 캐릭터 육성</div>
+                <div class="text-5xl mb-8">👶→👦→👨</div>
+                <div class="text-lg mb-6 font-bold">당신의 작은 목표가<br />캐릭터의 미래를 결정합니다</div>
+                <div class="text-md mt-12 bg-yellow-50 p-3 rounded-lg inline-block">
+                  "열심히 안 하면... 평생 인턴!"
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl overflow-hidden shadow-lg">
+                <div class="bg-blue-600 text-white p-3 flex justify-between items-center">
+                  <div class="text-sm font-bold">목표 달성 or Die</div>
+                  <div class="flex items-center">
+                    <div class="mr-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Lv.3</div>
+                    <div class="flex items-center text-xs">
+                      <span class="mr-1">💰</span>
+                      <span>85</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-4">
+                  <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between mb-2">
+                      <div class="text-xs text-gray-500">목표: 코딩 공부하기</div>
+                      <div class="text-xs text-green-600 font-bold">7일째 생존중</div>
+                    </div>
+                    
+                    <div class="flex justify-center mb-4">
+                      <div class="relative">
+                        <div class="text-6xl">👨‍💻</div>
+                        <div class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                          3
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <div class="flex justify-between text-sm mb-1">
+                        <span class="flex items-center">
+                          <span class="mr-1 text-blue-500">🧠</span>
+                          <span>지능</span>
+                        </span>
+                        <span>50/100</span>
+                      </div>
+                      <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 stat-bar" style="width: 50%"></div>
+                      </div>
+                    </div>
+                    
+                    <div class="bg-red-50 p-2 rounded text-xs text-center font-bold text-red-600 mb-3">
+                      현재 예상 미래: 전체 야근 개발자
+                    </div>
+                  </div>
+                  
+                  <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg mb-3 flex items-center justify-center">
+                    <span class="mr-2">📸</span>
+                    <span>오늘의 인증하기</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        
+        // 슬라이드 2: 핵심 컨셉
+        {
+          id: 'concept',
+          title: '앱 핵심 컨셉',
+          content: `
+            <div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-blue-50 p-5 rounded-xl">
+                  <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <div class="font-bold">하루 한 번 인증</div>
+                  </div>
+                  <p class="text-sm text-gray-600">
+                    목표를 향한 작은 활동을 사진으로 인증하고 보상을 받으세요
+                  </p>
+                </div>
+                
+                <div class="bg-green-50 p-5 rounded-xl">
+                  <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                    </div>
+                    <div class="font-bold">캐릭터 성장</div>
+                  </div>
+                  <p class="text-sm text-gray-600">
+                    골드로 구매한 아이템으로 다양한 능력치를 키우세요
+                  </p>
+                </div>
+                
+                <div class="bg-yellow-50 p-5 rounded-xl">
+                  <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-500 mr-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
+                    </div>
+                    <div class="font-bold">다양한 결말</div>
+                  </div>
+                  <p class="text-sm text-gray-600">
+                    출석률과 능력치에 따라 30+ 공감되는 코믹한 결말!
+                  </p>
+                </div>
+              </div>
+              
+              <div class="bg-gray-50 p-5 rounded-xl">
+                <div class="font-bold mb-2">핵심 가치</div>
+                <p class="text-sm text-gray-600">
+                  단순한 습관 앱이 아닌, 나만의 캐릭터를 성장시키는 재미와 함께 목표 달성의 동기부여를 제공합니다.
+                  당신이 열심히 하지 않으면... <span class="font-bold text-red-500">평생 인턴!</span>
+                </p>
+              </div>
+              
+              <div class="mt-6 border-t border-gray-200 pt-6">
+                <div class="font-bold mb-4 text-lg">독특한 B급 감성의 UX</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="font-bold mb-2 text-sm">현실 빙의 직업 결과</div>
+                    <div class="text-xs text-gray-600">
+                      • "전체 야근 개발자"<br />
+                      • "평생 인턴 10년차"<br />
+                      • "서울역 앞 물어보살"
+                    </div>
+                  </div>
+                  <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="font-bold mb-2 text-sm">코믹한 메시지</div>
+                    <div class="text-xs text-gray-600">
+                      • "오늘의 미래는 내일의 현실이다. 증말이다."<br />
+                      • "오늘도 인증 안 하면 평생 인턴!"
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        
+        // 슬라이드 3: UI/UX 디자인
+        {
+          id: 'ux',
+          title: 'B급 감성의 UI/UX',
+          content: `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="md:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="bg-blue-600 text-white p-2 text-sm font-bold text-center">
+                      홈 화면
+                    </div>
+                    <div class="p-3">
+                      <img src="https://via.placeholder.com/260x450?text=홈+화면+UI" alt="홈 화면 UI 예시" class="w-full rounded-lg">
+                    </div>
+                    <div class="p-3 text-xs text-gray-500">
+                      현재 능력치 및 예상 직업 결과와 인증 버튼
+                    </div>
+                  </div>
+                  
+                  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="bg-blue-600 text-white p-2 text-sm font-bold text-center">
+                      결과 화면
+                    </div>
+                    <div class="p-3">
+                      <img src="https://via.placeholder.com/260x450?text=결과+화면+UI" alt="결과 화면 UI 예시" class="w-full rounded-lg">
+                    </div>
+                    <div class="p-3 text-xs text-gray-500">
+                      120일 후 최종 결과와 코믹한 직업 설명
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                  <div class="font-bold mb-3">핵심 UX 특징</div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start">
+                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
+                        1
+                      </div>
+                      <div>
+                        <div class="font-medium text-sm mb-1">직관적 인증 경험</div>
+                        <p class="text-xs text-gray-600">
+                          3단계 이하의 심플한 인증 과정과 즉각적인 보상으로 사용자 경험 최적화
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
+                        2
+                      </div>
+                      <div>
+                        <div class="font-medium text-sm mb-1">재미있는 아이템</div>
+                        <p class="text-xs text-gray-600">
+                          "맥심 커피", "중고 아이폰 SE" 등 현실적이고 코믹한 아이템
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
+                        3
+                      </div>
+                      <div>
+                        <div class="font-medium text-sm mb-1">진행 상황 시각화</div>
+                        <p class="text-xs text-gray-600">
+                          현재 능력치에 따른 예상 직업을 실시간으로 보여주는 피드백
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
+                        4
+                      </div>
+                      <div>
+                        <div class="font-medium text-sm mb-1">바이럴 공유 요소</div>
+                        <p class="text-xs text-gray-600">
+                          트위터에서 공유하고 싶은 코믹한 결과 화면과 직업 설명
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+                  <div class="font-bold mb-3">네비게이션 구조</div>
+                  <div class="flex justify-around mb-3">
+                    <div class="text-center p-2 bg-blue-100 rounded-lg">
+                      <div class="text-lg mb-1">🏠</div>
+                      <div class="text-xs">홈</div>
+                    </div>
+                    <div class="text-center p-2">
+                      <div class="text-lg mb-1">🛒</div>
+                      <div class="text-xs">상점</div>
+                    </div>
+                    <div class="text-center p-2">
+                      <div class="text-lg mb-1">👤</div>
+                      <div class="text-xs">프로필</div>
+                    </div>
+                  </div>
+                  <div class="text-xs text-gray-600">
+                    심플한 3-탭 구조로 사용자 경험 최적화
+                  </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+                  <div class="font-bold mb-3">120일 전 프로필</div>
+                  <div class="text-xs text-gray-600 mb-3">
+                    아직 최종 결과가 나오기 전에는 프로필 탭에서:
+                  </div>
+                  <div class="space-y-2 mb-3">
+                    <div class="flex items-center">
+                      <div class="min-w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-2 text-xs">
+                        📊
+                      </div>
+                      <span class="text-xs">현재까지 진행 통계</span>
+                    </div>
+                    <div class="flex items-center">
+                      <div class="min-w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-2 text-xs">
+                        🔮
+                      </div>
+                      <span class="text-xs">현재 추세 기반 예상 직업</span>
+                    </div>
+                    <div class="flex items-center">
+                      <div class="min-w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-2 text-xs">
+                        📈
+                      </div>
+                      <span class="text-xs">능력치 성장 그래프</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                  <div class="font-bold mb-3">바이럴 요소</div>
+                  <div class="bg-yellow-50 p-3 rounded-lg text-xs">
+                    "회사 몰래 주식하는 대리" 직업을 받았어요 ㅋㅋㅋㅋ<br/>
+                    #목표달성orDie #현실빙의
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        
+        // 슬라이드 4: 코믹한 직업들
+        {
+          id: 'jobs',
+          title: '코믹한 결말/직업들',
+          content: `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                  <div class="text-lg font-bold mb-3">열심히 한 경우 (출석률↑)</div>
+                  <div class="space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">👨‍🎓</div>
+                        <div>
+                          <div class="text-sm font-medium">SKY 대학 수석 입학생</div>
+                          <div class="text-xs text-gray-600">지능↑↑, 출석률↑↑</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">👨‍💻</div>
+                        <div>
+                          <div class="text-sm font-medium">네카라쿠배 개발자</div>
+                          <div class="text-xs text-gray-600">지능↑, 창의력↑, 출석률↑</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">🧍</div>
+                        <div>
+                          <div class="text-sm font-medium">아침마다 5km 달리는 회사원</div>
+                          <div class="text-xs text-gray-600">체력↑↑, 건강↑, 출석률↑</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">🔬</div>
+                        <div>
+                          <div class="text-sm font-medium">퇴근 후 강남 학원강사</div>
+                          <div class="text-xs text-gray-600">지능↑, 사교성↑, 출석률↑</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                  <div class="text-lg font-bold mb-3">게으른 경우 (출석률↓)</div>
+                  <div class="space-y-3">
+                    <div class="bg-red-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">🖥️</div>
+                        <div>
+                          <div class="text-sm font-medium">PC방 레벨 만렙 달성자</div>
+                          <div class="text-xs text-gray-600">지능↓, 체력↓, 출석률↓↓</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">😴</div>
+                        <div>
+                          <div class="text-sm font-medium">취준 3년차 니트족</div>
+                          <div class="text-xs text-gray-600">모든 능력치↓, 출석률↓</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">📱</div>
+                        <div>
+                          <div class="text-sm font-medium">유튜브 대댓글 싸움러</div>
+                          <div class="text-xs text-gray-600">사교성↓,, 창의력↑, 출석률↓</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">🛒</div>
+                        <div>
+                          <div class="text-sm font-medium">밤에만 나오는 편의점 알바생</div>
+                          <div class="text-xs text-gray-600">건강↓, 체력↑, 출석률↓</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="md:col-span-2">
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                  <div class="text-lg font-bold mb-3">특이한 조합</div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">🎮</div>
+                        <div>
+                          <div class="text-sm font-medium">회사 몰래 주식하는 대리</div>
+                          <div class="text-xs text-gray-600">지능↑, 사교성↓, 출석률↑</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">🏠</div>
+                        <div>
+                          <div class="text-sm font-medium">방구석 웹툰 작가</div>
+                          <div class="text-xs text-gray-600">창의력↑↑, 체력↓, 출석률↓</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">🍜</div>
+                        <div>
+                          <div class="text-sm font-medium">맛집 인스타 인플루언서</div>
+                          <div class="text-xs text-gray-600">사교성↑, 건강↓, 창의력↑</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
+                      <div class="flex">
+                        <div class="text-xl mr-3">👔</div>
+                        <div>
+                          <div class="text-sm font-medium">평생 인턴 10년차</div>
+                          <div class="text-xs text-gray-600">출석률↑↑, 모든 능력치↓</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="md:col-span-2">
+                <div class="bg-blue-50 p-4 rounded-xl">
+                  <div class="font-bold mb-2">직업 결과 상세 예시</div>
+                  <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="mb-3 text-center">
+                      <div class="text-5xl mb-2">👨‍💻</div>
+                      <div class="text-xl font-bold text-blue-600">스타트업 4호 개발자</div>
+                    </div>
+                    <div class="text-sm text-gray-600 text-center italic mb-3">
+                      "월화수목금금금 야근으로 머리가 벗겨지기 시작했지만,<br />
+                      스톡옵션이라는 희망의 끈을 놓지 않는 당신"
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-3">
+                      <div class="text-center">
+                        <div class="text-sm text-gray-500">지능</div>
+                        <div class="font-bold">85%</div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-sm text-gray-500">체력</div>
+                        <div class="font-bold">40%</div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-sm text-gray-500">출석률</div>
+                        <div class="font-bold">95%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        
+        // 슬라이드 5: 재미 요소
+        {
+          id: 'fun',
+          title: '재미 요소',
+          content: `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="bg-white p-5 rounded-xl shadow-md">
+                <div class="text-lg font-bold mb-3">미니게임 시스템</div>
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                  <div class="bg-blue-50 p-3 rounded-lg text-center">
+                    <div class="text-xl mb-1">✂️</div>
+                    <div class="text-xs">가위바위보</div>
+                    <div class="text-xs text-blue-500 font-medium">승리 시 8골드</div>
+                  </div>
+                  <div class="bg-green-50 p-3 rounded-lg text-center">
+                    <div class="text-xl mb-1">🎲</div>
+                    <div class="text-xs">홀짝 게임</div>
+                    <div class="text-xs text-blue-500 font-medium">승리 시 8골드</div>
+                  </div>
+                  <div class="bg-yellow-50 p-3 rounded-lg text-center">
+                    <div class="text-xl mb-1">🍎</div>
+                    <div class="text-xs">사과 게임</div>
+                    <div class="text-xs text-blue-500 font-medium">최대 50골드</div>
+                  </div>
+                </div>
+                
+                <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                  <div class="flex justify-between mb-4">
+                    <div class="text-center">
+                      <div class="text-sm mb-2">나</div>
+                      <div class="text-4xl">✊</div>
+                    </div>
+                    <div class="flex items-center text-xl font-bold text-red-500">
+                      VS
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm mb-2">컴퓨터</div>
+                      <div class="text-4xl">✌️</div>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-red-100 text-red-600 text-center p-2 rounded-lg mb-2 text-sm font-bold">
+                    패배했습니다!
+                  </div>
+                  
+                  <div class="text-xs text-center text-gray-500">
+                    진정한 승부사는 연속 패배도 두렵지 않다... 라고 합니다
+                  </div>
+                </div>
+                
+                <p class="text-xs text-gray-600">
+                  광고 시청 후 확정 보상(3골드) 또는 미니게임 도전 중 선택할 수 있습니다.
+                  미니게임에서 승리하면 더 많은 골드를 획득할 수 있습니다!
+                </p>
+              </div>
+              
+              <div class="space-y-4">
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                  <div class="text-lg font-bold mb-3">아이템 상점</div>
+                  <div class="space-y-3">
+                    <div class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                          <div class="text-2xl mr-3">☕</div>
+                          <div>
+                            <div class="font-bold text-sm">맥심 커피</div>
+                            <div class="text-xs text-gray-500">에너지 +5</div>
+                          </div>
+                        </div>
+                        <button class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded">
+                          10 골드
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                          <div class="text-2xl mr-3">📱</div>
+                          <div>
+                            <div class="font-bold text-sm">중고 아이폰 SE</div>
+                            <div class="text-xs text-gray-500">지능 +10, 사교성 -5</div>
+                          </div>
+                        </div>
+                        <button class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded">
+                          50 골드
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                          <div class="text-2xl mr-3">🍕</div>
+                          <div>
+                            <div class="font-bold text-sm">도미노 피자</div>
+                            <div class="text-xs text-gray-500">체력 +8, 건강 -3</div>
+                          </div>
+                        </div>
+                        <button class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded">
+                          25 골드
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="text-xs text-gray-600 mt-3">
+                    현실적이고 코믹한 아이템들로 능력치를 조정하여 미래 직업을 변화시킬 수 있습니다.
+                  </p>
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                  <div class="text-lg font-bold mb-3">유머 텍스트</div>
+                  <div class="space-y-2">
+                    <div class="bg-gray-50 p-2 rounded-lg text-sm">
+                      "면접관: 당신의 장점은? 나: 출석률이 좋습니다"
+                    </div>
+                    <div class="bg-gray-50 p-2 rounded-lg text-sm">
+                      "지능 0, 출석률 100 = 열정만렙 빌드"
+                    </div>
+                    <div class="bg-gray-50 p-2 rounded-lg text-sm">
+                      "오늘도 인증 안 하면 평생 인턴!"
+                    </div>
+                  </div>
+                  <p class="text-xs text-gray-600 mt-3">
+                    타임라인과 인증 시 재미있는 코멘트로 동기부여를 제공합니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        
+        // 슬라이드 6: 바이럴 요소 
+        {
+          id: 'viral',
+          title: '바이럴 요소',
+          content: `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div class="bg-white p-5 rounded-xl shadow-md mb-5">
+                  <div class="text-lg font-bold mb-3">결과 공유 화면</div>
+                  <div class="bg-gray-100 p-4 rounded-xl">
+                    <div class="text-center mb-5">
+                      <div class="text-7xl mb-3">👨‍💻</div>
+                      <div class="text-xl font-bold text-blue-600 mb-2">
+                        스타트업 4호 개발자
+                      </div>
+                      <div class="text-sm text-gray-600 italic mb-3">
+                        "월화수목금금금 야근으로 머리가 벗겨지기 시작했지만,<br />
+                        스톡옵션이라는 희망의 끈을 놓지 않는 당신"
+                      </div>
+                    </div>
+                    
+                    <div class="flex justify-center gap-3 mb-4">
+                      <div class="bg-blue-50 p-2 rounded-lg text-center flex-1 max-w-24">
+                        <div class="text-xs text-gray-500">출석률</div>
+                        <div class="font-bold">95%</div>
+                      </div>
+                      <div class="bg-green-50 p-2 rounded-lg text-center flex-1 max-w-24">
+                        <div class="text-xs text-gray-500">지능</div>
+                        <div class="font-bold">85%</div>
+                      </div>
+                      <div class="bg-red-50 p-2 rounded-lg text-center flex-1 max-w-24">
+                        <div class="text-xs text-gray-500">체력</div>
+                        <div class="font-bold">40%</div>
+                      </div>
+                    </div>
+                    
+                    <div class="bg-blue-100 p-2 rounded-lg text-center text-xs text-blue-800">
+                      #목표달성orDie #현실빙의 #스타트업4호개발자
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                  <div class="text-lg font-bold mb-3">바이럴 가능성</div>
+                  <div class="space-y-3">
+                    <div class="flex items-start">
+                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
+                        1
+                      </div>
+                      <div>
+                        <div class="font-medium text-sm mb-1">강한 공감 요소</div>
+                        <p class="text-xs text-gray-600">
+                          한국 사회의 직장 문화, 취업 스트레스, 대학 입시 등 현실적 요소를 코믹하게 풀어내어 공감대 형성
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
+                        2
+                      </div>
+                      <div>
+                        <div class="font-medium text-sm mb-1">자발적 결과 공유</div>
+                        <p class="text-xs text-gray-600">
+                          "평생 인턴", "PC방 만렙" 등 코믹한 결과를 친구들과 공유하고 싶은 욕구 유발
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
+                        3
+                      </div>
+                      <div>
+                        <div class="font-medium text-sm mb-1">밈(meme) 가능성</div>
+                        <p class="text-xs text-gray-600">
+                          "월화수목금금금 야근" 같은 표현이 밈으로 퍼져나갈 가능성
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <div class="bg-white p-5 rounded-xl shadow-md mb-5">
+                  <div class="text-lg font-bold mb-3">가상 트윗 예시</div>
+                  <div class="space-y-4">
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                      <div class="flex items-start">
+                        <div class="min-w-8 h-8 rounded-full overflow-hidden mr-3 bg-gray-400"></div>
+                        <div>
+                          <div class="font-bold">개발자 지망생</div>
+                          <div class="text-sm text-gray-600 mb-2">
+                            '목표 달성 or Die' 앱 써봤는데 존웃ㅋㅋㅋ 코딩 공부 120일 했더니 "스타트업 4호 개발자"라는 결과 나왔음ㅠㅠ "월화수목금금금 야근" 설명까지 있는데 현실 빙의 수준임💀
+                          </div>
+                          <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span>❤️ 2.4k</span>
+                            <span>🔁 1.2k</span>
+                            <span>💬 340</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                      <div class="flex items-start">
+                        <div class="min-w-8 h-8 rounded-full overflow-hidden mr-3 bg-gray-400"></div>
+                        <div>
+                          <div class="font-bold">OO대 취준생</div>
+                          <div class="text-sm text-gray-600 mb-2">
+                            출석률 타이트하게 안지켰더니 "평생 인턴 10년차" 직업이 나왔다... 이게 현실이 될까봐 무섭다ㅋㅋㅋㅠㅠ #목표달성orDie
+                          </div>
+                          <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span>❤️ 3.8k</span>
+                            <span>🔁 2.5k</span>
+                            <span>💬 582</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="bg-blue-50 p-5 rounded-xl">
+                  <div class="text-center mb-3">
+                    <div class="text-lg font-bold mb-1">핵심 해시태그</div>
+                    <div class="flex flex-wrap justify-center gap-2">
+                      <div class="bg-blue-100 px-3 py-1 rounded-full text-sm">
+                        #목표달성orDie
+                      </div>
+                      <div class="bg-blue-100 px-3 py-1 rounded-full text-sm">
+                        #현실빙의
+                      </div>
+                      <div class="bg-blue-100 px-3 py-1 rounded-full text-sm">
+                        #인생시뮬레이터
+                      </div>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 text-center">
+                    현실에 기반한 B급 유머와 공감되는 코믹한 직업 결과로<br/>
+                    사용자들이 자발적으로 결과를 공유하게 됩니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        
+        // 슬라이드 7: 마무리
+        {
+          id: 'conclusion',
+          title: '최종 요약',
+          content: `
+            <div class="text-center">
+              <div class="text-4xl mb-8">👶→👦→👨</div>
+              <h3 class="text-xl font-bold mb-4">목표 달성 or Die</h3>
+              <div class="max-w-lg mx-auto mb-8">
+                <p class="text-gray-600 mb-4">
+                  매일 한 번의 인증으로 캐릭터가 성장하고 다양한 한국형 B급 코믹 직업으로 발전하는 특별한 습관 형성 앱입니다.
+                </p>
+                <p class="text-gray-600">
+                  현실에서 공감되는 재미있는 결말로 사용자의 지속적인 참여를 유도하고, 트위터에서 바이럴이 될 수 있는 콘텐츠를 제공합니다.
+                </p>
+              </div>
+              
+              <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-8">
+                <div class="bg-blue-50 p-3 rounded-lg">
+                  <div class="text-2xl mb-2">📱</div>
+                  <div class="text-sm font-medium">매일 한 번 인증</div>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <div class="text-2xl mb-2">👨‍💻</div>
+                  <div class="text-sm font-medium">능력치 성장</div>
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-lg">
+                  <div class="text-2xl mb-2">🏆</div>
+                  <div class="text-sm font-medium">B급 코믹 엔딩</div>
+                </div>
+              </div>
+              
+              <div class="text-blue-500 font-bold text-xl">
+                "열심히 안 하면... 평생 인턴!"
+              </div>
+            </div>
+          `
+        }
+      ];
+      
+      // 상태 변수들
+      let currentSlide = 0;
+      const totalSlides = slides.length;
+      
+      // DOM 요소 참조
+      const slideTitle = document.getElementById('slideTitle');
+      const slideContent = document.getElementById('slideContent');
+      const slideCounter = document.getElementById('slideCounter');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      
+      // 슬라이드 업데이트 함수
+      function updateSlide(index) {
+        // 슬라이드 내용이 변경되는 애니메이션을 위해 클래스 추가
+        slideContent.classList.add('slide-exit');
+        
+        setTimeout(() => {
+          // 타이틀과 내용 업데이트
+          slideTitle.querySelector('h2').textContent = slides[index].title;
+          slideContent.innerHTML = slides[index].content;
+          slideCounter.textContent = `슬라이드 ${index + 1} / ${totalSlides}`;
+          
+          // 버튼 상태 업데이트
+          prevBtn.disabled = index === 0;
+          prevBtn.className = index === 0 
+            ? 'flex items-center text-gray-300 cursor-not-allowed' 
+            : 'flex items-center text-blue-500 hover:text-blue-700';
+          
+          nextBtn.disabled = index === totalSlides - 1;
+          nextBtn.className = index === totalSlides - 1 
+            ? 'flex items-center text-gray-300 cursor-not-allowed' 
+            : 'flex items-center text-blue-500 hover:text-blue-700';
+          
+          // 들어오는 애니메이션
+          slideContent.classList.remove('slide-exit');
+          slideContent.classList.add('slide-enter');
+          
+          setTimeout(() => {
+            slideContent.classList.remove('slide-enter');
+            slideContent.classList.add('slide-active');
+            
+            // 능력치 바 애니메이션 효과
+            const statBars = document.querySelectorAll('.stat-bar');
+            statBars.forEach(bar => {
+              const width = bar.style.width;
+              bar.style.width = '0%';
+              setTimeout(() => {
+                bar.style.width = width;
+              }, 100);
+            });
+            
+            // 직업 카드에 호버 효과 추가
+            const jobCards = document.querySelectorAll('.job-card');
+            jobCards.forEach(card => {
+              card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-3px)';
+                card.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+              });
+              card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = 'none';
+              });
+            });
+            
+          }, 50);
+        }, 200);
+      }
+      
+      // 네비게이션 버튼 이벤트 리스너
+      prevBtn.addEventListener('click', () => {
+        if (currentSlide > 0) {
+          currentSlide--;
+          updateSlide(currentSlide);
+        }
+      });
+      
+      nextBtn.addEventListener('click', () => {
+        if (currentSlide < totalSlides - 1) {
+          currentSlide++;
+          updateSlide(currentSlide);
+        }
+      });
+      
+      // 키보드 네비게이션
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) {
+          currentSlide++;
+          updateSlide(currentSlide);
+        } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
+          currentSlide--;
+          updateSlide(currentSlide);
+        }
+      });
+      
+      // 초기 슬라이드 로딩
+      updateSlide(currentSlide);
+    });
+  </script>
+</body>
+</html>
