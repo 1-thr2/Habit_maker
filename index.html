@@ -1,1723 +1,1037 @@
-<!-- 카메라 화면 -->
-          <div id="cameraTab" class="tab-content p-2 hidden">
-            <div class="text-xs font-bold mb-2">인증 사진 촬영</div>
-            <div class="relative bg-black rounded-lg mb-2">
-              <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg overflow-hidden">
-                <div id="cameraViewfinder" class="text-6xl">📷</div>
-              </div>
-              <button id="captureBtn" class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white flex items-center justify-center">
-                <div class="w-10 h-10 rounded-full bg-red-500"></div>
-              </button>
-            </div>
-            <div class="text-xxs text-center text-gray-500 mb-2">
-              오늘의 코딩 공부 인증 사진을 찍어주세요
-            </div>
-            <button id="cancelCameraBtn" class="w-full bg-gray-500 text-white text-xxs font-bold py-1 rounded-lg">
-              취소하기
-            </button>
-          </div>
-          
-          <!-- 인증 완료 화면 -->
-          <div id="checkInCompleteTab" class="tab-content p-2 hidden">
-            <div class="text-xs font-bold mb-2 text-center">인증 완료!</div>
-            <div class="bg-green-50 p-3 rounded-lg mb-2">
-              <div id="motivationMessage" class="text-center text-sm text-green-700 font-medium mb-2">
-                좋아요! 오늘도 한 걸음 더 성장했어요!
-              </div>
-              <div class="flex items-center justify-center text-3xl mb-2">🎉</div>
-              <div class="flex justify-center items-center text-center text-xs bg-white p-2 rounded-lg">
-                <span class="mr-2">보상:</span>
-                <span class="flex items-center text-yellow-500 font-bold">
-                  <span class="mr-1">💰</span> 
-                  <span>10 골드</span>
-                </span>
-              </div>
-            </div>
-            <button id="checkInDoneBtn" class="w-full bg-blue-600 text-white text-xs font-bold py-1 rounded-lg">
-              확인
-            </button>
-          </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>목표 달성 or Die</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  
   <style>
     /* 기본 스타일 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+    
+    :root {
+      --primary-color: #3B82F6;
+      --secondary-color: #1D4ED8;
+      --accent-color: #FBBF24;
+      --success-color: #10B981;
+      --danger-color: #EF4444;
+      --background-color: #F3F4F6;
+      --card-color: #FFFFFF;
+    }
+    
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--background-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+    
     .text-xxs {
       font-size: 0.65rem;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      min-height: 100vh;
+    
+    .app-container {
+      background-color: var(--card-color);
+      max-width: 420px;
+      width: 100%;
+      height: 740px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      position: relative;
+      border: 10px solid #000;
+    }
+    
+    /* 상단 상태바 디자인 */
+    .status-bar {
+      height: 24px;
+      background-color: #000000;
+      color: white;
       display: flex;
-      flex-direction: column;
-    }
-
-    main {
-      min-height: calc(100vh - 120px);
-    }
-
-    /* 슬라이드 애니메이션 */
-    .slide-transition {
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .slide-exit {
-      opacity: 0;
-      transform: translateX(-30px);
-    }
-
-    .slide-enter {
-      opacity: 0;
-      transform: translateX(30px);
-    }
-
-    .slide-active {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    /* 모바일 앱 미리보기 애니메이션 */
-    #mobileDemo {
-      transition: transform 0.3s ease;
-    }
-
-    #mobileDemo:hover {
-      transform: scale(1.05);
-    }
-
-    /* 능력치 바 애니메이션 */
-    .stat-bar .bar-fill {
-      transition: width 1s ease;
-    }
-
-    /* 반응형 조정 */
-    @media (max-width: 640px) {
-      #mobileDemo {
-        display: none !important;
-      }
-      
-      main {
-        padding-top: 5rem;
-        padding-bottom: 2rem;
-      }
-    }
-
-    /* 앱 프리뷰 스크롤 */
-    .app-preview {
-      max-height: 500px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .app-preview::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .app-preview::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-
-    .app-preview::-webkit-scrollbar-thumb {
-      background: #c5c5c5;
-      border-radius: 3px;
-    }
-
-    /* 버튼 효과 */
-    button:not(:disabled) {
-      transition: all 0.2s;
-    }
-
-    button:not(:disabled):active {
-      transform: scale(0.98);
-    }
-
-    /* 직업 카드 애니메이션 */
-    .job-card {
-      transition: all 0.3s ease;
-    }
-
-    .job-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 0.7rem;
     }
     
     /* 탭 내용 스타일 */
     .tab-content {
       display: none;
+      height: calc(100% - 130px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     
     .tab-content.active {
       display: block;
     }
     
-    /* 미니게임 애니메이션 */
+    /* 애니메이션 */
     .animated-pulse {
       animation: pulse 1s infinite;
     }
     
     @keyframes pulse {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.05);
-      }
-      100% {
-        transform: scale(1);
-      }
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    .slide-up {
+      animation: slideUp 0.3s ease-in-out;
+    }
+    
+    @keyframes slideUp {
+      0% { transform: translateY(20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    .shake {
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px) rotate(-5deg); }
+      75% { transform: translateX(5px) rotate(5deg); }
+    }
+    
+    /* 사과 떨어지는 애니메이션 */
+    .apple-falling {
+      animation: falling 1s ease-in-out forwards;
+    }
+    
+    @keyframes falling {
+      0% { transform: translateY(-100px); }
+      100% { transform: translateY(100px); }
+    }
+    
+    /* 탭 바 스타일 */
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #FFFFFF;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #E5E7EB;
+    }
+    
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #9CA3AF;
+    }
+    
+    .tab-btn.active {
+      color: var(--primary-color);
+    }
+    
+    .tab-btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* 능력치 바 애니메이션 */
+    .stat-bar {
+      transition: width 0.5s ease-out;
+    }
+    
+    /* 버튼 스타일 */
+    .primary-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    
+    .primary-btn:active {
+      transform: scale(0.98);
+      background-color: var(--secondary-color);
+    }
+    
+    .secondary-btn {
+      background-color: var(--accent-color);
+      color: #4B5563;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    
+    .secondary-btn:active {
+      transform: scale(0.98);
+      background-color: #F59E0B;
+    }
+    
+    /* 게임 카드 스타일 */
+    .game-card {
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+    }
+    
+    .game-card:active {
+      transform: scale(0.98);
+    }
+    
+    /* 카메라 스타일 */
+    .camera-viewfinder {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* 진행 상태 바 */
+    .progress-bar {
+      height: 0.25rem;
+      border-radius: 0.25rem;
+      overflow: hidden;
+      background-color: #E5E7EB;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 0.25rem;
+      transition: width 0.5s ease-out;
+    }
+    
+    /* 토스트 메시지 스타일 */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #374151;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      z-index: 50;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      animation: toast 3s ease-in-out forwards;
+    }
+    
+    @keyframes toast {
+      0% { opacity: 0; transform: translate(-50%, -20px); }
+      10% { opacity: 1; transform: translate(-50%, 0); }
+      90% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -20px); }
     }
   </style>
 </head>
-<body class="bg-gray-100">
-  <!-- 헤더 -->
-  <header class="bg-white p-4 border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-10">
-    <div class="flex justify-between items-center max-w-6xl mx-auto">
-      <div class="flex items-center space-x-2">
-        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg font-bold">
-          H
-        </div>
-        <span class="font-bold text-sm md:text-lg">목표 달성 or Die</span>
-      </div>
-      <div id="slideCounter" class="text-sm text-gray-500">
-        슬라이드 1 / 7
+<body>
+  <div class="app-container">
+    <!-- 상태바 -->
+    <div class="status-bar">
+      <div>12:30</div>
+      <div class="flex space-x-1">
+        <div>📶</div>
+        <div>📡</div>
+        <div>🔋</div>
       </div>
     </div>
-  </header>
-  
-  <!-- 슬라이드 컨테이너 -->
-  <main class="pt-16 pb-8 px-4 flex-1">
-    <div class="flex flex-col md:flex-row md:space-x-6 max-w-7xl mx-auto">
-      <!-- 왼쪽: 슬라이드 -->
-      <div class="w-full md:w-3/5 mb-6 md:mb-0">
-        <div id="slideContainer" class="bg-white rounded-xl shadow-md overflow-hidden h-full">
-          <!-- 슬라이드 제목 -->
-          <div id="slideTitle" class="bg-blue-600 text-white p-4">
-            <h2 class="text-xl font-bold">목표 달성 캐릭터 앱</h2>
+    
+    <!-- 앱 헤더 -->
+    <div class="bg-blue-600 text-white p-3 flex justify-between items-center">
+      <div class="font-bold">목표 달성 or Die</div>
+      <div class="flex items-center space-x-2">
+        <div class="bg-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-medium">Lv.<span id="level">3</span></div>
+        <div id="goldBtn" class="flex items-center bg-blue-700 px-2 py-0.5 rounded-full cursor-pointer">
+          <span class="mr-1">💰</span>
+          <span id="gold">85</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 앱 콘텐츠 영역 -->
+    <div class="app-content relative">
+      <!-- 홈 탭 -->
+      <div id="homeTab" class="tab-content active p-4">
+        <div class="bg-white rounded-lg p-4 mb-4 shadow">
+          <div class="flex justify-between mb-3">
+            <div class="text-xs text-gray-500">목표: 코딩 공부하기</div>
+            <div class="text-xs text-green-600 font-bold"><span id="days">7</span>일째 생존중</div>
           </div>
           
-          <!-- 슬라이드 내용 -->
-          <div id="slideContent" class="p-6 overflow-auto" style="max-height: calc(100vh - 200px);">
-            <!-- 슬라이드 내용이 JS에서 동적으로 들어갑니다 -->
+          <div class="flex justify-center mb-4">
+            <div class="relative">
+              <div class="text-6xl" id="character">👨‍💻</div>
+              <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span id="notificationCount">3</span>
+              </div>
+            </div>
           </div>
           
-          <!-- 네비게이션 버튼 -->
-          <div class="flex justify-between p-4 border-t border-gray-200">
-            <button id="prevBtn" class="flex items-center text-gray-300 cursor-not-allowed" disabled>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              이전
+          <div class="space-y-2 mb-4">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="flex items-center">
+                  <span class="mr-1 text-blue-500">🧠</span>
+                  <span>지능</span>
+                </span>
+                <span><span id="intelligence">50</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="intelligenceBar" class="progress-fill bg-blue-500" style="width: 50%"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="flex items-center">
+                  <span class="mr-1 text-green-500">💪</span>
+                  <span>체력</span>
+                </span>
+                <span><span id="strength">35</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="strengthBar" class="progress-fill bg-green-500" style="width: 35%"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="flex items-center">
+                  <span class="mr-1 text-purple-500">💡</span>
+                  <span>창의력</span>
+                </span>
+                <span><span id="creativity">42</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="creativityBar" class="progress-fill bg-purple-500" style="width: 42%"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-red-50 p-3 rounded-lg text-xs text-center font-bold text-red-600 mb-4">
+            현재 예상 미래: <span id="job">전체 야근 개발자</span>
+          </div>
+          
+          <button id="checkInBtn" class="primary-btn mb-3">
+            <span class="mr-2">📸</span>
+            <span>오늘의 인증하기</span>
+          </button>
+          
+          <button id="adBtn" class="secondary-btn">
+            <span class="mr-2">🎬</span>
+            <span>광고보고 골드 받기</span>
+          </button>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="text-sm font-bold mb-2">오늘의 동기부여</div>
+          <div class="text-xs text-gray-600 italic">
+            "지능 0, 출석률 100 = 열정만렙 빌드지만 평생 인턴..."
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm font-bold">친구 랭킹</div>
+            <div class="text-xs text-blue-600">모두 보기</div>
+          </div>
+          
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="text-yellow-500 font-bold mr-2">1</div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">👨‍🎓</div>
+                <div class="text-xs">개발왕김코딩</div>
+              </div>
+              <div class="text-xs">Lv.5</div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="text-gray-400 font-bold mr-2">2</div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">👩‍💻</div>
+                <div class="text-xs">자바의정석</div>
+              </div>
+              <div class="text-xs">Lv.4</div>
+            </div>
+            
+            <div class="flex items-center justify-between bg-blue-50 p-1 rounded">
+              <div class="flex items-center">
+                <div class="text-blue-500 font-bold mr-2">3</div>
+                <div class="w-8 h-8 bg-blue-200 rounded-full mr-2 flex items-center justify-center">👨‍💻</div>
+                <div class="text-xs font-medium">나</div>
+              </div>
+              <div class="text-xs">Lv.3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 상점 탭 -->
+      <div id="shopTab" class="tab-content p-4 hidden">
+        <div class="flex justify-between items-center mb-4">
+          <div class="text-lg font-bold">상점</div>
+          <div class="flex items-center bg-yellow-100 px-3 py-1 rounded-full">
+            <span class="mr-1">💰</span>
+            <span id="shopGold">85</span>
+          </div>
+        </div>
+        
+        <div class="space-y-3">
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">☕</div>
+                <div>
+                  <div class="font-bold text-sm">맥심 커피</div>
+                  <div class="text-xs text-gray-500">지능 +5</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="10" data-stat="intelligence" data-value="5">
+                10 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🏋️‍♂️</div>
+                <div>
+                  <div class="font-bold text-sm">헬스장 1일 이용권</div>
+                  <div class="text-xs text-gray-500">체력 +8, 지능 -2</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="15" data-stat="strength" data-value="8">
+                15 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">📱</div>
+                <div>
+                  <div class="font-bold text-sm">중고 아이폰 SE</div>
+                  <div class="text-xs text-gray-500">지능 +10, 체력 -3</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="50" data-stat="intelligence" data-value="10">
+                50 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🍕</div>
+                <div>
+                  <div class="font-bold text-sm">도미노 피자</div>
+                  <div class="text-xs text-gray-500">체력 +5, 창의력 +3</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="25" data-stat="strength" data-value="5">
+                25 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🎨</div>
+                <div>
+                  <div class="font-bold text-sm">아이패드 드로잉 앱</div>
+                  <div class="text-xs text-gray-500">창의력 +12</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="35" data-stat="creativity" data-value="12">
+                35 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🧠</div>
+                <div>
+                  <div class="font-bold text-sm">알고리즘 문제집</div>
+                  <div class="text-xs text-gray-500">지능 +15, 창의력 +5</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="60" data-stat="intelligence" data-value="15">
+                60 골드
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 프로필 탭 -->
+      <div id="profileTab" class="tab-content p-4 hidden">
+        <div class="bg-blue-50 p-4 rounded-lg shadow mb-4 text-center">
+          <div class="text-6xl mb-2">👨‍💻</div>
+          <div class="text-lg font-bold">레벨 <span id="profileLevel">3</span></div>
+          <div class="text-xs text-gray-500 mt-1">목표 달성 현황</div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-blue-600" id="profileDays">7</div>
+              <div class="text-xs text-gray-500">연속 인증</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-green-600">87</div>
+              <div class="text-xs text-gray-500">인증 성공</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-red-600">3</div>
+              <div class="text-xs text-gray-500">인증 실패</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-purple-600">2025.03.14</div>
+              <div class="text-xs text-gray-500">목표 시작일</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="text-sm font-bold mb-3">현재 능력치</div>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>지능</span>
+                <span><span id="profileIntelligence">50</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="profileIntelligenceBar" class="progress-fill bg-blue-500" style="width: 50%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>체력</span>
+                <span><span id="profileStrength">35</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="profileStrengthBar" class="progress-fill bg-green-500" style="width: 35%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>창의력</span>
+                <span><span id="profileCreativity">42</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="profileCreativityBar" class="progress-fill bg-purple-500" style="width: 42%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="text-sm font-bold mb-3">통계 분석</div>
+          <div class="space-y-2 text-xs">
+            <div class="bg-gray-50 p-2 rounded-lg">
+              <div class="font-bold mb-1">지난 주 vs 이번 주</div>
+              <div>인증률 85% → 95% (+10%)</div>
+              <div>평균 능력치 상승 4.3 → 5.8</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded-lg">
+              <div class="font-bold mb-1">동일 목표 유저 비교</div>
+              <div>상위 15% (최근 능력치 상승률)</div>
+              <div>상위 25% (누적 인증 횟수)</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-blue-50 p-4 rounded-lg shadow text-center mb-20">
+          <div class="text-sm font-bold mb-2">120일 후 직업 예측</div>
+          <div class="text-xl font-bold text-blue-600 mb-1">
+            네카라쿠배 개발자
+          </div>
+          <div class="text-xs text-gray-600">
+            현재 추세 기준: 지능 74%, 체력 52%, 창의력 68%
+          </div>
+        </div>
+      </div>
+      
+      <!-- 카메라 화면 -->
+      <div id="cameraTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">인증 사진 촬영</div>
+        <div class="relative bg-black rounded-lg mb-4 overflow-hidden">
+          <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
+            <div id="cameraViewfinder" class="text-6xl">📷</div>
+            <div id="cameraOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none"></div>
+          </div>
+          <button id="captureBtn" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
+            <div class="w-14 h-14 rounded-full bg-red-500"></div>
+          </button>
+        </div>
+        <div class="text-sm text-center text-gray-500 mb-4">
+          오늘의 코딩 공부 인증 사진을 찍어주세요
+        </div>
+        <button id="cancelCameraBtn" class="bg-gray-500 text-white font-bold py-3 rounded-lg w-full">
+          취소하기
+        </button>
+      </div>
+      
+      <!-- 인증 완료 화면 -->
+      <div id="checkInCompleteTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">인증 완료!</div>
+        <div class="bg-green-50 p-4 rounded-lg shadow mb-4">
+          <div id="motivationMessage" class="text-center text-base text-green-700 font-medium mb-4">
+            좋아요! 오늘도 한 걸음 더 성장했어요!
+          </div>
+          <div class="flex items-center justify-center text-5xl mb-4">🎉</div>
+          <div class="flex justify-center items-center text-center bg-white p-3 rounded-lg shadow-sm">
+            <span class="mr-3 text-base">보상:</span>
+            <span class="flex items-center text-yellow-500 text-lg font-bold">
+              <span class="mr-2">💰</span> 
+              <span>10 골드</span>
+            </span>
+          </div>
+        </div>
+        <button id="checkInDoneBtn" class="bg-blue-600 text-white font-bold py-3 rounded-lg w-full">
+          확인
+        </button>
+      </div>
+      
+      <!-- 광고 시청 완료 / 게임 선택 화면 -->
+      <div id="adCompleteTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">광고 시청 완료!</div>
+        <div class="bg-yellow-50 p-4 rounded-lg shadow mb-4">
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm font-bold">보상 선택:</div>
+            <button id="confirmRewardBtn" class="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center">
+              <span class="mr-1">💰</span>
+              <span>3골드 확정</span>
             </button>
-            <button id="nextBtn" class="flex items-center text-blue-500 hover:text-blue-700">
-              다음
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+          
+          <div class="text-sm font-bold mb-3">또는 미니게임 도전:</div>
+          <div class="grid grid-cols-3 gap-3">
+            <button id="rpsGameBtn" class="game-card bg-blue-500 text-white p-3 rounded-lg flex flex-col items-center justify-center">
+              <span class="text-2xl mb-2">✂️</span>
+              <span class="text-xs">가위바위보</span>
+              <span class="text-xxs font-bold">최대 8골드</span>
+            </button>
+            <button id="oddEvenGameBtn" class="game-card bg-purple-500 text-white p-3 rounded-lg flex flex-col items-center justify-center">
+              <span class="text-2xl mb-2">🎲</span>
+              <span class="text-xs">홀짝 게임</span>
+              <span class="text-xxs font-bold">최대 30골드</span>
+            </button>
+            <button id="appleGameBtn" class="game-card bg-red-500 text-white p-3 rounded-lg flex flex-col items-center justify-center">
+              <span class="text-2xl mb-2">🍎</span>
+              <span class="text-xs">사과 게임</span>
+              <span class="text-xxs font-bold">최대 50골드</span>
+            </button>
+          </div>
+        </div>
+        <div class="text-xs text-center text-gray-500 mb-12">
+          게임 승리 시 더 많은 골드를 획득할 수 있습니다!
+        </div>
+      </div>
+      
+      <!-- 가위바위보 게임 화면 -->
+      <div id="rpsGameTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">가위바위보 게임</div>
+        <div class="bg-blue-50 p-4 rounded-lg shadow">
+          <div class="text-center text-sm mb-3">승리 시 8골드를 획득합니다!</div>
+          
+          <div id="rpsChoices" class="flex justify-between mb-4">
+            <button class="rps-choice bg-white shadow text-3xl p-2 rounded-lg w-16 h-16 flex items-center justify-center" data-choice="가위">✌️</button>
+            <button class="rps-choice bg-white shadow text-3xl p-2 rounded-lg w-16 h-16 flex items-center justify-center" data-choice="바위">✊</button>
+            <button class="rps-choice bg-white shadow text-3xl p-2 rounded-lg w-16 h-16 flex items-center justify-center" data-choice="보">🖐️</button>
+          </div>
+          
+          <div id="rpsResult" class="hidden">
+            <div class="flex justify-between mb-4">
+              <div class="text-center">
+                <div class="text-xs mb-2">나</div>
+                <div id="playerRpsChoice" class="text-4xl bg-white p-2 rounded-lg shadow">✊</div>
+              </div>
+              <div class="flex items-center text-xl font-bold text-red-500">VS</div>
+              <div class="text-center">
+                <div class="text-xs mb-2">컴퓨터</div>
+                <div id="computerRpsChoice" class="text-4xl bg-white p-2 rounded-lg shadow">✌️</div>
+              </div>
+            </div>
+            
+            <div id="rpsWinResult" class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              승리! 8골드 획득!
+            </div>
+            <div id="rpsLoseResult" class="bg-red-100 text-red-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              패배했습니다!
+            </div>
+            <div id="rpsDrawResult" class="bg-gray-100 text-gray-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              무승부! 다시 도전!
+            </div>
+          </div>
+          
+          <div class="flex justify-between mt-4">
+            <button id="rpsBackBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg">
+              그만두기
+            </button>
+            <button id="rpsAgainBtn" class="bg-blue-500 text-white font-bold px-4 py-2 rounded-lg hidden">
+              다시하기 (광고)
             </button>
           </div>
         </div>
       </div>
       
-      <!-- 오른쪽: 앱 미리보기 -->
-      <div class="w-full md:w-2/5 flex justify-center md:justify-end">
-        <div id="mobileDemo" class="shadow-lg rounded-lg overflow-hidden" style="height: 600px; width: 320px;">
-    <div class="bg-white p-2 text-xs font-bold text-center border-b border-gray-200">
-      앱 미리보기
-    </div>
-    <div class="relative w-64 h-96 bg-gray-800">
-              <!-- 앱 화면 -->
-      <div class="bg-white h-full">
-        <!-- 상단 네비게이션 -->
-        <div class="bg-blue-600 text-white p-2 flex justify-between items-center">
-          <div class="text-xs font-bold">목표 달성 or Die</div>
-          <div class="flex items-center">
-            <div class="mr-2 text-xs bg-yellow-500 text-black px-1 py-0.5 rounded-full text-xs">Lv.<span id="level">3</span></div>
-            <div id="goldBtn" class="flex items-center text-xs cursor-pointer bg-blue-700 px-2 py-0.5 rounded-full">
-              <span class="mr-1">💰</span>
-              <span id="gold">85</span>
+      <!-- 홀짝 게임 화면 -->
+      <div id="oddEvenGameTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">홀짝 게임</div>
+        <div class="bg-purple-50 p-4 rounded-lg shadow">
+          <div id="oddEvenStage1" class="active-stage">
+            <div class="text-center text-sm mb-3">1단계: 홀/짝 맞추기 (맞추면 8골드)</div>
+            
+            <div id="diceContainer" class="h-32 flex items-center justify-center mb-4">
+              <div id="dice" class="text-7xl">🎲</div>
             </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <button id="oddBtn" class="bg-purple-500 text-white py-3 rounded-lg text-sm font-bold">
+                홀수 (1,3,5)
+              </button>
+              <button id="evenBtn" class="bg-indigo-500 text-white py-3 rounded-lg text-sm font-bold">
+                짝수 (2,4,6)
+              </button>
+            </div>
+          </div>
+          
+          <div id="oddEvenStage2" class="hidden">
+            <div class="text-center text-sm mb-3">2단계: 정확한 숫자 맞추기</div>
+            <div class="bg-green-100 text-green-700 p-3 rounded-lg text-sm text-center mb-4">
+              8골드 획득! 숫자를 맞추면 총 30골드, 그만두면 8골드
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="1">1</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="2">2</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="3">3</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="4">4</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="5">5</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="6">6</button>
+            </div>
+            
+            <button id="keepGoldBtn" class="bg-green-500 text-white py-3 rounded-lg text-sm font-bold w-full mb-3">
+              8골드 가져가기
+            </button>
+          </div>
+          
+          <div id="diceResult" class="hidden">
+            <div id="oddEvenWinResult" class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              정답! 8골드 획득!
+            </div>
+            <div id="exactNumberWinResult" class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              대성공! 30골드 획득!
+            </div>
+            <div id="oddEvenLoseResult" class="bg-red-100 text-red-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              틀렸습니다!
+            </div>
+          </div>
+          
+          <div class="flex justify-between mt-4">
+            <button id="oddEvenBackBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg">
+              그만두기
+            </button>
+            <button id="oddEvenAgainBtn" class="bg-purple-500 text-white font-bold px-4 py-2 rounded-lg hidden">
+              다시하기 (광고)
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 사과 게임 화면 -->
+      <div id="appleGameTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">사과 게임</div>
+        <div class="bg-red-50 p-4 rounded-lg shadow">
+          <div class="text-center text-sm mb-3">최대 50골드를 획득할 수 있습니다!</div>
+          
+          <div class="relative h-48 bg-blue-50 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+            <div id="appleTree" class="text-5xl">🌳</div>
+            <div id="appleContainer" class="absolute inset-0 flex items-center justify-center">
+              <!-- 사과들이 여기에 추가됩니다 -->
+            </div>
+            <div id="appleBasket" class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-3xl">
+              🧺
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="bg-white p-3 rounded-lg shadow text-center">
+              <div class="text-xs text-gray-500">획득한 사과</div>
+              <div class="font-bold text-lg"><span id="appleCount">0</span>개</div>
+            </div>
+            <div class="bg-white p-3 rounded-lg shadow text-center">
+              <div class="text-xs text-gray-500">현재 골드</div>
+              <div class="font-bold text-lg text-yellow-500"><span id="appleGold">0</span> 골드</div>
+            </div>
+          </div>
+          
+          <button id="shakeBtn" class="bg-red-500 text-white py-3 px-4 rounded-lg text-sm font-bold w-full mb-3">
+            나무 흔들기!
+          </button>
+          
+          <div id="appleGameResult" class="hidden">
+            <div class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold">
+              게임 종료! <span id="finalAppleGold">0</span>골드 획득!
+            </div>
+          </div>
+          
+          <div class="flex justify-between">
+            <button id="appleBackBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg">
+              그만두기
+            </button>
+            <button id="appleCashOutBtn" class="bg-green-500 text-white font-bold px-4 py-2 rounded-lg">
+              현재 골드 받기
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 광고 시청 화면 -->
+      <div id="adWatchTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">광고 시청 중...</div>
+        <div class="bg-gray-800 h-64 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden">
+          <div id="adContent" class="text-white text-center">
+            <div class="text-2xl mb-2">광고 재생 중</div>
+            <div class="animate-pulse">
+              <div class="text-6xl mb-4">📱</div>
+              <div class="text-lg">최신 스마트폰 출시!</div>
+            </div>
+          </div>
+          
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-600">
+            <div id="adProgress" class="h-full bg-yellow-500" style="width: 0%"></div>
+          </div>
+          
+          <div class="absolute top-2 right-2 text-xs bg-gray-700 text-white px-1 rounded">
+            AD
           </div>
         </div>
         
-        <!-- 앱 콘텐츠 영역 -->
-        <div class="h-full overflow-y-auto">
-          <!-- 홈 탭 -->
-          <div id="homeTab" class="tab-content active p-2">
-            <div class="bg-gray-100 rounded-lg p-2 mb-2">
-              <div class="flex justify-between mb-1">
-                <div class="text-xxs text-gray-500">목표: 코딩 공부하기</div>
-                <div class="text-xxs text-green-600 font-bold"><span id="days">7</span>일째 생존중</div>
-              </div>
-              
-              <div class="flex justify-center mb-2">
-                <div class="relative">
-                  <div class="text-4xl" id="character">👨‍💻</div>
-                  <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xxs font-bold rounded-full w-3 h-3 flex items-center justify-center">
-                    3
-                  </div>
-                </div>
-              </div>
-              
-              <div class="space-y-1 mb-2">
-                <div>
-                  <div class="flex justify-between text-xxs mb-0.5">
-                    <span class="flex items-center">
-                      <span class="mr-0.5 text-blue-500">🧠</span>
-                      <span>지능</span>
-                    </span>
-                    <span><span id="intelligence">50</span>/100</span>
-                  </div>
-                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="intelligenceBar" class="h-full bg-blue-500" style="width: 50%"></div>
-                  </div>
-                </div>
-                
-                <div>
-                  <div class="flex justify-between text-xxs mb-0.5">
-                    <span class="flex items-center">
-                      <span class="mr-0.5 text-green-500">💪</span>
-                      <span>체력</span>
-                    </span>
-                    <span><span id="strength">35</span>/100</span>
-                  </div>
-                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="strengthBar" class="h-full bg-green-500" style="width: 35%"></div>
-                  </div>
-                </div>
-                
-                <div>
-                  <div class="flex justify-between text-xxs mb-0.5">
-                    <span class="flex items-center">
-                      <span class="mr-0.5 text-purple-500">💡</span>
-                      <span>창의력</span>
-                    </span>
-                    <span><span id="creativity">42</span>/100</span>
-                  </div>
-                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="creativityBar" class="h-full bg-purple-500" style="width: 42%"></div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="bg-red-50 p-1 rounded text-xxs text-center font-bold text-red-600 mb-1">
-                현재 예상 미래: <span id="job">전체 야근 개발자</span>
-              </div>
-            </div>
-            
-            <button id="checkInBtn" class="w-full bg-blue-600 text-white font-bold py-1 text-xs rounded-lg mb-1 flex items-center justify-center">
-              <span class="mr-1">📸</span>
-              <span>오늘의 인증하기</span>
-            </button>
-            
-            <button id="adBtn" class="w-full bg-yellow-500 text-white font-bold py-1 text-xs rounded-lg flex items-center justify-center">
-              <span class="mr-1">🎬</span>
-              <span>광고보고 골드 받기</span>
-            </button>
-          </div>
-          
-          <!-- 상점 탭 -->
-          <div id="shopTab" class="tab-content p-2 hidden">
-            <div class="text-xs font-bold mb-2">상점</div>
-            <div class="space-y-2">
-              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center">
-                    <div class="text-xl mr-2">☕</div>
-                    <div>
-                      <div class="font-bold text-xxs">맥심 커피</div>
-                      <div class="text-xxs text-gray-500">지능 +5</div>
-                    </div>
-                  </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="10" data-stat="intelligence" data-value="5">
-                    10 골드
-                  </button>
-                </div>
-              </div>
-              
-              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center">
-                    <div class="text-xl mr-2">🏋️‍♂️</div>
-                    <div>
-                      <div class="font-bold text-xxs">헬스장 1일 이용권</div>
-                      <div class="text-xxs text-gray-500">체력 +8, 지능 -2</div>
-                    </div>
-                  </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="15" data-stat="strength" data-value="8">
-                    15 골드
-                  </button>
-                </div>
-              </div>
-              
-              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center">
-                    <div class="text-xl mr-2">📱</div>
-                    <div>
-                      <div class="font-bold text-xxs">중고 아이폰 SE</div>
-                      <div class="text-xxs text-gray-500">지능 +10, 체력 -3</div>
-                    </div>
-                  </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="50" data-stat="intelligence" data-value="10">
-                    50 골드
-                  </button>
-                </div>
-              </div>
-              
-              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center">
-                    <div class="text-xl mr-2">🍕</div>
-                    <div>
-                      <div class="font-bold text-xxs">도미노 피자</div>
-                      <div class="text-xxs text-gray-500">체력 +5, 창의력 +3</div>
-                    </div>
-                  </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="25" data-stat="strength" data-value="5">
-                    25 골드
-                  </button>
-                </div>
-              </div>
-              
-              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center">
-                    <div class="text-xl mr-2">🎨</div>
-                    <div>
-                      <div class="font-bold text-xxs">아이패드 드로잉 앱</div>
-                      <div class="text-xxs text-gray-500">창의력 +12</div>
-                    </div>
-                  </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="35" data-stat="creativity" data-value="12">
-                    35 골드
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 프로필 탭 -->
-          <div id="profileTab" class="tab-content p-2 hidden h-full overflow-y-auto pb-16">
-            <div class="bg-blue-50 p-3 rounded-lg text-center mb-3">
-              <div class="text-3xl mb-1">👨‍💻</div>
-              <div class="text-xs font-bold">레벨 <span id="profileLevel">3</span></div>
-              <div class="text-xxs text-gray-500 mt-1">목표 달성 현황</div>
-            </div>
-            
-            <div class="space-y-2 text-xs">
-              <div class="flex justify-between bg-white p-2 rounded-lg">
-                <span>목표 시작일:</span>
-                <span>2025-03-14</span>
-              </div>
-              <div class="flex justify-between bg-white p-2 rounded-lg">
-                <span>인증 성공:</span>
-                <span class="text-green-500 font-bold">87회</span>
-              </div>
-              <div class="flex justify-between bg-white p-2 rounded-lg">
-                <span>인증 실패:</span>
-                <span class="text-red-500 font-bold">3회</span>
-              </div>
-              <div class="flex justify-between bg-white p-2 rounded-lg">
-                <span>연속 인증:</span>
-                <span class="text-blue-500 font-bold"><span id="profileDays">7</span>일</span>
-              </div>
-            </div>
-            
-            <div class="mt-3 bg-gray-100 p-2 rounded-lg">
-              <div class="text-xs font-bold mb-2">현재 능력치</div>
-              <div class="space-y-2">
-                <div>
-                  <div class="flex justify-between text-xxs mb-0.5">
-                    <span>지능:</span>
-                    <span><span id="profileIntelligence">50</span>/100</span>
-                  </div>
-                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="profileIntelligenceBar" class="h-full bg-blue-500" style="width: 50%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between text-xxs mb-0.5">
-                    <span>체력:</span>
-                    <span><span id="profileStrength">35</span>/100</span>
-                  </div>
-                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="profileStrengthBar" class="h-full bg-green-500" style="width: 35%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between text-xxs mb-0.5">
-                    <span>창의력:</span>
-                    <span><span id="profileCreativity">42</span>/100</span>
-                  </div>
-                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="profileCreativityBar" class="h-full bg-purple-500" style="width: 42%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="mt-3 bg-yellow-50 p-2 rounded-lg">
-              <div class="text-xs font-bold mb-2">통계 분석</div>
-              <div class="space-y-2 text-xxs">
-                <div class="bg-white p-2 rounded-lg">
-                  <div class="font-bold mb-1">지난 주 vs 이번 주</div>
-                  <div>인증률 85% → 95% (+10%)</div>
-                  <div>평균 능력치 상승 4.3 → 5.8</div>
-                </div>
-                <div class="bg-white p-2 rounded-lg">
-                  <div class="font-bold mb-1">동일 목표 유저 비교</div>
-                  <div>상위 15% (최근 능력치 상승률)</div>
-                  <div>상위 25% (누적 인증 횟수)</div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="mt-3 bg-blue-50 p-2 rounded-lg">
-              <div class="text-xs font-bold mb-2 text-center">120일 후 직업 예측</div>
-              <div class="bg-white p-2 rounded-lg text-center text-sm">
-                네카라쿠배 개발자
-              </div>
-              <div class="text-xxs text-center mt-2 text-gray-600">
-                현재 추세 기준: 지능 74%, 체력 52%, 창의력 68%
-              </div>
-            </div>
-            
-            <div class="mt-3 bg-green-50 p-2 rounded-lg">
-              <div class="text-xs font-bold mb-2 text-center">관련 직업 분석</div>
-              <div class="text-xxs space-y-1">
-                <div class="bg-white p-2 rounded-lg flex justify-between">
-                  <span>네카라쿠배 개발자</span>
-                  <span class="text-green-500">85%</span>
-                </div>
-                <div class="bg-white p-2 rounded-lg flex justify-between">
-                  <span>스타트업 4호 개발자</span>
-                  <span class="text-yellow-500">62%</span>
-                </div>
-                <div class="bg-white p-2 rounded-lg flex justify-between">
-                  <span>프리랜서 개발자</span>
-                  <span class="text-blue-500">48%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 광고 시청 완료 / 게임 선택 화면 -->
-          <div id="adCompleteTab" class="tab-content p-2 hidden">
-            <div class="text-xs font-bold mb-2 text-center">광고 시청 완료!</div>
-            <div class="bg-yellow-50 p-3 rounded-lg mb-3">
-              <div class="flex justify-between items-center mb-3">
-                <div class="text-xs font-bold">보상 선택:</div>
-                <button id="confirmRewardBtn" class="bg-green-500 text-white text-xxs font-bold px-2 py-1 rounded-lg flex items-center">
-                  <span class="mr-1">💰</span>
-                  <span>3골드 확정</span>
-                </button>
-              </div>
-              
-              <div class="text-xs font-bold mb-2">또는 미니게임 도전:</div>
-              <div class="grid grid-cols-3 gap-2">
-                <button id="rpsGameBtn" class="bg-blue-500 text-white p-2 rounded-lg flex flex-col items-center justify-center">
-                  <span class="text-xl mb-1">✂️</span>
-                  <span class="text-xxs">가위바위보</span>
-                  <span class="text-xxs font-bold">최대 8골드</span>
-                </button>
-                <button id="oddEvenGameBtn" class="bg-purple-500 text-white p-2 rounded-lg flex flex-col items-center justify-center">
-                  <span class="text-xl mb-1">🎲</span>
-                  <span class="text-xxs">홀짝 게임</span>
-                  <span class="text-xxs font-bold">최대 10골드</span>
-                </button>
-                <button id="appleGameBtn" class="bg-red-500 text-white p-2 rounded-lg flex flex-col items-center justify-center">
-                  <span class="text-xl mb-1">🍎</span>
-                  <span class="text-xxs">사과 게임</span>
-                  <span class="text-xxs font-bold">최대 50골드</span>
-                </button>
-              </div>
-            </div>
-            <div class="text-xxs text-center text-gray-500">
-              게임 승리 시 골드를 획득하고, 패배 시 0골드를 받습니다!
-            </div>
-          </div>
-          
-          <!-- 가위바위보 게임 화면 -->
-          <div id="rpsGameTab" class="tab-content p-2 hidden">
-            <div class="text-xs font-bold mb-2">가위바위보 게임</div>
-            <div class="bg-blue-50 p-3 rounded-lg">
-              <div class="text-center text-xxs mb-2">이길 시 8골드를 획득합니다!</div>
-              <div class="flex justify-between mb-3">
-                <button class="rps-choice bg-white shadow text-3xl p-1 rounded-lg w-12 h-12 flex items-center justify-center" data-choice="가위">✌️</button>
-                <button class="rps-choice bg-white shadow text-3xl p-1 rounded-lg w-12 h-12 flex items-center justify-center" data-choice="바위">✊</button>
-                <button class="rps-choice bg-white shadow text-3xl p-1 rounded-lg w-12 h-12 flex items-center justify-center" data-choice="보">🖐️</button>
-              </div>
-              
-              <div id="rpsResult" class="hidden">
-                <div class="flex justify-between mb-3">
-                  <div class="text-center">
-                    <div class="text-xxs mb-1">나</div>
-                    <div id="playerRpsChoice" class="text-2xl bg-white p-1 rounded-lg shadow">✊</div>
-                  </div>
-                  <div class="flex items-center text-lg font-bold text-red-500">VS</div>
-                  <div class="text-center">
-                    <div class="text-xxs mb-1">컴퓨터</div>
-                    <div id="computerRpsChoice" class="text-2xl bg-white p-1 rounded-lg shadow">✌️</div>
-                  </div>
-                </div>
-                
-                <div id="rpsWinResult" class="bg-green-100 text-green-600 text-center p-2 rounded-lg mb-2 text-xs font-bold hidden">
-                  승리! 8골드 획득!
-                </div>
-                <div id="rpsLoseResult" class="bg-red-100 text-red-600 text-center p-2 rounded-lg mb-2 text-xs font-bold hidden">
-                  패배했습니다!
-                </div>
-                <div id="rpsDrawResult" class="bg-gray-100 text-gray-600 text-center p-2 rounded-lg mb-2 text-xs font-bold hidden">
-                  무승부! 다시 도전!
-                </div>
-              </div>
-              
-              <div class="flex justify-between mt-3">
-                <button id="rpsBackBtn" class="bg-gray-500 text-white text-xxs font-bold px-3 py-1 rounded-lg">
-                  뒤로가기
-                </button>
-                <button id="rpsAgainBtn" class="bg-blue-500 text-white text-xxs font-bold px-3 py-1 rounded-lg hidden">
-                  다시하기
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 홀짝 게임 화면 -->
-          <div id="oddEvenGameTab" class="tab-content p-2 hidden">
-            <div class="text-xs font-bold mb-2">홀짝 게임</div>
-            <div class="bg-purple-50 p-3 rounded-lg">
-              <div id="oddEvenStage1" class="active-stage">
-                <div class="text-center text-xxs mb-3">1단계: 홀/짝 맞추기 (맞추면 8골드)</div>
-                
-                <div id="diceContainer" class="h-24 flex items-center justify-center mb-3">
-                  <div id="dice" class="text-6xl">🎲</div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                  <button id="oddBtn" class="bg-purple-500 text-white py-2 rounded-lg text-xs font-bold">
-                    홀수 (1,3,5)
-                  </button>
-                  <button id="evenBtn" class="bg-indigo-500 text-white py-2 rounded-lg text-xs font-bold">
-                    짝수 (2,4,6)
-                  </button>
-                </div>
-              </div>
-              
-              <div id="oddEvenStage2" class="hidden">
-                <div class="text-center text-xxs mb-2">2단계: 정확한 숫자 맞추기</div>
-                <div class="bg-green-100 text-green-700 p-2 rounded-lg text-xs text-center mb-3">
-                  8골드 획득! 숫자를 맞추면 총 30골드, 그만두면 8골드
-                </div>
-                
-                <div class="grid grid-cols-3 gap-2 mb-3">
-                  <button class="exact-number-btn bg-purple-500 text-white py-2 rounded-lg text-xs font-bold" data-number="1">1</button>
-                  <button class="exact-number-btn bg-purple-500 text-white py-2 rounded-lg text-xs font-bold" data-number="2">2</button>
-                  <button class="exact-number-btn bg-purple-500 text-white py-2 rounded-lg text-xs font-bold" data-number="3">3</button>
-                  <button class="exact-number-btn bg-purple-500 text-white py-2 rounded-lg text-xs font-bold" data-number="4">4</button>
-                  <button class="exact-number-btn bg-purple-500 text-white py-2 rounded-lg text-xs font-bold" data-number="5">5</button>
-                  <button class="exact-number-btn bg-purple-500 text-white py-2 rounded-lg text-xs font-bold" data-number="6">6</button>
-                </div>
-                
-                <button id="keepGoldBtn" class="w-full bg-green-500 text-white py-2 rounded-lg text-xs font-bold mb-2">
-                  8골드 가져가기
-                </button>
-              </div>
-              
-              <div id="diceResult" class="hidden">
-                <div id="oddEvenWinResult" class="bg-green-100 text-green-600 text-center p-2 rounded-lg mb-2 text-xs font-bold hidden">
-                  정답! 8골드 획득!
-                </div>
-                <div id="exactNumberWinResult" class="bg-green-100 text-green-600 text-center p-2 rounded-lg mb-2 text-xs font-bold hidden">
-                  대성공! 30골드 획득!
-                </div>
-                <div id="oddEvenLoseResult" class="bg-red-100 text-red-600 text-center p-2 rounded-lg mb-2 text-xs font-bold hidden">
-                  틀렸습니다!
-                </div>
-              </div>
-              
-              <div class="flex justify-between mt-3">
-                <button id="oddEvenBackBtn" class="bg-gray-500 text-white text-xxs font-bold px-3 py-1 rounded-lg">
-                  뒤로가기
-                </button>
-                <button id="oddEvenAgainBtn" class="bg-purple-500 text-white text-xxs font-bold px-3 py-1 rounded-lg hidden">
-                  다시하기
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 사과 게임 화면 -->
-          <div id="appleGameTab" class="tab-content p-2 hidden">
-            <div class="text-xs font-bold mb-2">사과 게임</div>
-            <div class="bg-red-50 p-3 rounded-lg">
-              <div class="text-center text-xxs mb-2">최대 50골드를 획득할 수 있습니다!</div>
-              
-              <div class="relative h-32 bg-white rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                <div id="appleTree" class="text-4xl">🌳</div>
-                <div id="appleContainer" class="absolute inset-0 flex items-center justify-center">
-                  <!-- 사과들이 여기에 추가됩니다 -->
-                </div>
-                <div id="appleBasket" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-2xl">
-                  🧺
-                </div>
-              </div>
-              
-              <div class="space-y-2 mb-3">
-                <div class="bg-white p-2 rounded-lg flex justify-between items-center">
-                  <span class="text-xs">획득한 사과:</span>
-                  <span class="font-bold text-xs"><span id="appleCount">0</span>개</span>
-                </div>
-                <div class="bg-white p-2 rounded-lg flex justify-between items-center">
-                  <span class="text-xs">현재 골드:</span>
-                  <span class="font-bold text-xs text-yellow-500"><span id="appleGold">0</span> 골드</span>
-                </div>
-              </div>
-              
-              <div class="flex justify-center mb-3">
-                <button id="shakeBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold">
-                  나무 흔들기!
-                </button>
-              </div>
-              
-              <div id="appleGameResult" class="hidden">
-                <div class="bg-green-100 text-green-600 text-center p-2 rounded-lg mb-2 text-xs font-bold">
-                  게임 종료! <span id="finalAppleGold">0</span>골드 획득!
-                </div>
-              </div>
-              
-              <div class="flex justify-between">
-                <button id="appleBackBtn" class="bg-gray-500 text-white text-xxs font-bold px-3 py-1 rounded-lg">
-                  그만두기
-                </button>
-                <button id="appleCashOutBtn" class="bg-green-500 text-white text-xxs font-bold px-3 py-1 rounded-lg">
-                  현재 골드 받기
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 하단 탭 바 -->
-          <div class="absolute bottom-0 left-0 right-0 bg-gray-800 text-white p-1 grid grid-cols-3 text-xxs">
-            <div id="homeTabBtn" class="flex flex-col items-center text-blue-400 cursor-pointer">
-              <span class="text-base">🏠</span>
-              <span>홈</span>
-            </div>
-            <div id="shopTabBtn" class="flex flex-col items-center text-gray-400 cursor-pointer">
-              <span class="text-base">🛒</span>
-              <span>상점</span>
-            </div>
-            <div id="profileTabBtn" class="flex flex-col items-center text-gray-400 cursor-pointer">
-              <span class="text-base">👤</span>
-              <span>프로필</span>
-            </div>
-          </div>
+        <div class="text-sm text-center text-gray-500 mb-4">
+          잠시만 기다려주세요... (<span id="adTimeLeft">5</span>초)
         </div>
+        
+        <button id="skipAdBtn" class="bg-gray-300 text-gray-500 font-bold py-3 rounded-lg w-full" disabled>
+          광고 건너뛰기
+        </button>
+      </div>
+    </div>
+    
+    <!-- 탭 바 -->
+    <div class="tab-bar">
+      <div id="homeTabBtn" class="tab-btn active">
+        <span class="text-2xl">🏠</span>
+        <span class="text-xs">홈</span>
+      </div>
+      <div id="shopTabBtn" class="tab-btn">
+        <span class="text-2xl">🛒</span>
+        <span class="text-xs">상점</span>
+      </div>
+      <div id="profileTabBtn" class="tab-btn">
+        <span class="text-2xl">👤</span>
+        <span class="text-xs">프로필</span>
       </div>
     </div>
   </div>
   
-  <!-- 푸터 -->
-  <footer class="bg-white p-4 border-t border-gray-200 text-center text-gray-500 text-sm">
-    © 2025 목표 달성 or Die 프로젝트
-  </footer>
-  
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // 슬라이드 내용 정의
-      const slides = [
-        // 슬라이드 1: 메인 소개
-        {
-          id: 'intro',
-          title: '목표 달성 캐릭터 앱',
-          content: `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div class="text-center md:text-left">
-                <div class="mb-6 text-lg">습관 형성 × 캐릭터 육성</div>
-                <div class="text-5xl mb-8">👶→👦→👨</div>
-                <div class="text-lg mb-6 font-bold">당신의 작은 목표가<br />캐릭터의 미래를 결정합니다</div>
-                <div class="text-md mt-12 bg-yellow-50 p-3 rounded-lg inline-block">
-                  "열심히 안 하면... 평생 인턴!"
-                </div>
-              </div>
-              
-              <div class="bg-white rounded-xl overflow-hidden shadow-lg">
-                <div class="bg-blue-600 text-white p-3 flex justify-between items-center">
-                  <div class="text-sm font-bold">목표 달성 or Die</div>
-                  <div class="flex items-center">
-                    <div class="mr-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Lv.3</div>
-                    <div class="flex items-center text-xs">
-                      <span class="mr-1">💰</span>
-                      <span>85</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="p-4">
-                  <div class="bg-gray-100 rounded-lg p-4 mb-4">
-                    <div class="flex justify-between mb-2">
-                      <div class="text-xs text-gray-500">목표: 코딩 공부하기</div>
-                      <div class="text-xs text-green-600 font-bold">7일째 생존중</div>
-                    </div>
-                    
-                    <div class="flex justify-center mb-4">
-                      <div class="relative">
-                        <div class="text-6xl">👨‍💻</div>
-                        <div class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                          3
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                      <div class="flex justify-between text-sm mb-1">
-                        <span class="flex items-center">
-                          <span class="mr-1 text-blue-500">🧠</span>
-                          <span>지능</span>
-                        </span>
-                        <span>50/100</span>
-                      </div>
-                      <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500 stat-bar" style="width: 50%"></div>
-                      </div>
-                    </div>
-                    
-                    <div class="bg-red-50 p-2 rounded text-xs text-center font-bold text-red-600 mb-3">
-                      현재 예상 미래: 전체 야근 개발자
-                    </div>
-                  </div>
-                  
-                  <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg mb-3 flex items-center justify-center">
-                    <span class="mr-2">📸</span>
-                    <span>오늘의 인증하기</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `
-        },
-        
-        // 슬라이드 2: 핵심 컨셉
-        {
-          id: 'concept',
-          title: '앱 핵심 컨셉',
-          content: `
-            <div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-blue-50 p-5 rounded-xl">
-                  <div class="flex items-center mb-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    </div>
-                    <div class="font-bold">하루 한 번 인증</div>
-                  </div>
-                  <p class="text-sm text-gray-600">
-                    목표를 향한 작은 활동을 사진으로 인증하고 보상을 받으세요
-                  </p>
-                </div>
-                
-                <div class="bg-green-50 p-5 rounded-xl">
-                  <div class="flex items-center mb-3">
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
-                    </div>
-                    <div class="font-bold">캐릭터 성장</div>
-                  </div>
-                  <p class="text-sm text-gray-600">
-                    골드로 구매한 아이템으로 다양한 능력치를 키우세요
-                  </p>
-                </div>
-                
-                <div class="bg-yellow-50 p-5 rounded-xl">
-                  <div class="flex items-center mb-3">
-                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-500 mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
-                    </div>
-                    <div class="font-bold">다양한 결말</div>
-                  </div>
-                  <p class="text-sm text-gray-600">
-                    출석률과 능력치에 따라 30+ 공감되는 코믹한 결말!
-                  </p>
-                </div>
-              </div>
-              
-              <div class="bg-gray-50 p-5 rounded-xl">
-                <div class="font-bold mb-2">핵심 가치</div>
-                <p class="text-sm text-gray-600">
-                  단순한 습관 앱이 아닌, 나만의 캐릭터를 성장시키는 재미와 함께 목표 달성의 동기부여를 제공합니다.
-                  당신이 열심히 하지 않으면... <span class="font-bold text-red-500">평생 인턴!</span>
-                </p>
-              </div>
-              
-              <div class="mt-6 border-t border-gray-200 pt-6">
-                <div class="font-bold mb-4 text-lg">독특한 B급 감성의 UX</div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="bg-white p-4 rounded-lg shadow-sm">
-                    <div class="font-bold mb-2 text-sm">현실 빙의 직업 결과</div>
-                    <div class="text-xs text-gray-600">
-                      • "전체 야근 개발자"<br />
-                      • "평생 인턴 10년차"<br />
-                      • "서울역 앞 물어보살"
-                    </div>
-                  </div>
-                  <div class="bg-white p-4 rounded-lg shadow-sm">
-                    <div class="font-bold mb-2 text-sm">코믹한 메시지</div>
-                    <div class="text-xs text-gray-600">
-                      • "오늘의 미래는 내일의 현실이다. 증말이다."<br />
-                      • "오늘도 인증 안 하면 평생 인턴!"
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `
-        },
-        
-        // 슬라이드 3: UI/UX 디자인
-        {
-          id: 'ux',
-          title: 'B급 감성의 UI/UX',
-          content: `
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="md:col-span-2">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div class="bg-blue-600 text-white p-2 text-sm font-bold text-center">
-                      홈 화면
-                    </div>
-                    <div class="p-3">
-                      <img src="https://via.placeholder.com/260x450?text=홈+화면+UI" alt="홈 화면 UI 예시" class="w-full rounded-lg">
-                    </div>
-                    <div class="p-3 text-xs text-gray-500">
-                      현재 능력치 및 예상 직업 결과와 인증 버튼
-                    </div>
-                  </div>
-                  
-                  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div class="bg-blue-600 text-white p-2 text-sm font-bold text-center">
-                      결과 화면
-                    </div>
-                    <div class="p-3">
-                      <img src="https://via.placeholder.com/260x450?text=결과+화면+UI" alt="결과 화면 UI 예시" class="w-full rounded-lg">
-                    </div>
-                    <div class="p-3 text-xs text-gray-500">
-                      120일 후 최종 결과와 코믹한 직업 설명
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="bg-white rounded-lg shadow-sm p-4">
-                  <div class="font-bold mb-3">핵심 UX 특징</div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex items-start">
-                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
-                        1
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm mb-1">직관적 인증 경험</div>
-                        <p class="text-xs text-gray-600">
-                          3단계 이하의 심플한 인증 과정과 즉각적인 보상으로 사용자 경험 최적화
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div class="flex items-start">
-                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
-                        2
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm mb-1">재미있는 아이템</div>
-                        <p class="text-xs text-gray-600">
-                          "맥심 커피", "중고 아이폰 SE" 등 현실적이고 코믹한 아이템
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div class="flex items-start">
-                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
-                        3
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm mb-1">진행 상황 시각화</div>
-                        <p class="text-xs text-gray-600">
-                          현재 능력치에 따른 예상 직업을 실시간으로 보여주는 피드백
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div class="flex items-start">
-                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
-                        4
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm mb-1">바이럴 공유 요소</div>
-                        <p class="text-xs text-gray-600">
-                          트위터에서 공유하고 싶은 코믹한 결과 화면과 직업 설명
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
-                  <div class="font-bold mb-3">네비게이션 구조</div>
-                  <div class="flex justify-around mb-3">
-                    <div class="text-center p-2 bg-blue-100 rounded-lg">
-                      <div class="text-lg mb-1">🏠</div>
-                      <div class="text-xs">홈</div>
-                    </div>
-                    <div class="text-center p-2">
-                      <div class="text-lg mb-1">🛒</div>
-                      <div class="text-xs">상점</div>
-                    </div>
-                    <div class="text-center p-2">
-                      <div class="text-lg mb-1">👤</div>
-                      <div class="text-xs">프로필</div>
-                    </div>
-                  </div>
-                  <div class="text-xs text-gray-600">
-                    심플한 3-탭 구조로 사용자 경험 최적화
-                  </div>
-                </div>
-                
-                <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
-                  <div class="font-bold mb-3">120일 전 프로필</div>
-                  <div class="text-xs text-gray-600 mb-3">
-                    아직 최종 결과가 나오기 전에는 프로필 탭에서:
-                  </div>
-                  <div class="space-y-2 mb-3">
-                    <div class="flex items-center">
-                      <div class="min-w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-2 text-xs">
-                        📊
-                      </div>
-                      <span class="text-xs">현재까지 진행 통계</span>
-                    </div>
-                    <div class="flex items-center">
-                      <div class="min-w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-2 text-xs">
-                        🔮
-                      </div>
-                      <span class="text-xs">현재 추세 기반 예상 직업</span>
-                    </div>
-                    <div class="flex items-center">
-                      <div class="min-w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-2 text-xs">
-                        📈
-                      </div>
-                      <span class="text-xs">능력치 성장 그래프</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="bg-white rounded-lg shadow-sm p-4">
-                  <div class="font-bold mb-3">바이럴 요소</div>
-                  <div class="bg-yellow-50 p-3 rounded-lg text-xs">
-                    "회사 몰래 주식하는 대리" 직업을 받았어요 ㅋㅋㅋㅋ<br/>
-                    #목표달성orDie #현실빙의
-                  </div>
-                </div>
-              </div>
-            </div>
-          `
-        },
-        
-        // 슬라이드 4: 코믹한 직업들
-        {
-          id: 'jobs',
-          title: '코믹한 결말/직업들',
-          content: `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div class="bg-white p-5 rounded-xl shadow-md">
-                  <div class="text-lg font-bold mb-3">열심히 한 경우 (출석률↑)</div>
-                  <div class="space-y-3">
-                    <div class="bg-blue-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">👨‍🎓</div>
-                        <div>
-                          <div class="text-sm font-medium">SKY 대학 수석 입학생</div>
-                          <div class="text-xs text-gray-600">지능↑↑, 출석률↑↑</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-blue-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">👨‍💻</div>
-                        <div>
-                          <div class="text-sm font-medium">네카라쿠배 개발자</div>
-                          <div class="text-xs text-gray-600">지능↑, 창의력↑, 출석률↑</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-blue-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">🧍</div>
-                        <div>
-                          <div class="text-sm font-medium">아침마다 5km 달리는 회사원</div>
-                          <div class="text-xs text-gray-600">체력↑↑, 건강↑, 출석률↑</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-blue-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">🔬</div>
-                        <div>
-                          <div class="text-sm font-medium">퇴근 후 강남 학원강사</div>
-                          <div class="text-xs text-gray-600">지능↑, 사교성↑, 출석률↑</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <div class="bg-white p-5 rounded-xl shadow-md">
-                  <div class="text-lg font-bold mb-3">게으른 경우 (출석률↓)</div>
-                  <div class="space-y-3">
-                    <div class="bg-red-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">🖥️</div>
-                        <div>
-                          <div class="text-sm font-medium">PC방 레벨 만렙 달성자</div>
-                          <div class="text-xs text-gray-600">지능↓, 체력↓, 출석률↓↓</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-red-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">😴</div>
-                        <div>
-                          <div class="text-sm font-medium">취준 3년차 니트족</div>
-                          <div class="text-xs text-gray-600">모든 능력치↓, 출석률↓</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-red-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">📱</div>
-                        <div>
-                          <div class="text-sm font-medium">유튜브 대댓글 싸움러</div>
-                          <div class="text-xs text-gray-600">사교성↓,, 창의력↑, 출석률↓</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-red-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">🛒</div>
-                        <div>
-                          <div class="text-sm font-medium">밤에만 나오는 편의점 알바생</div>
-                          <div class="text-xs text-gray-600">건강↓, 체력↑, 출석률↓</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="md:col-span-2">
-                <div class="bg-white p-5 rounded-xl shadow-md">
-                  <div class="text-lg font-bold mb-3">특이한 조합</div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">🎮</div>
-                        <div>
-                          <div class="text-sm font-medium">회사 몰래 주식하는 대리</div>
-                          <div class="text-xs text-gray-600">지능↑, 사교성↓, 출석률↑</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">🏠</div>
-                        <div>
-                          <div class="text-sm font-medium">방구석 웹툰 작가</div>
-                          <div class="text-xs text-gray-600">창의력↑↑, 체력↓, 출석률↓</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">🍜</div>
-                        <div>
-                          <div class="text-sm font-medium">맛집 인스타 인플루언서</div>
-                          <div class="text-xs text-gray-600">사교성↑, 건강↓, 창의력↑</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bg-yellow-50 p-3 rounded-lg job-card">
-                      <div class="flex">
-                        <div class="text-xl mr-3">👔</div>
-                        <div>
-                          <div class="text-sm font-medium">평생 인턴 10년차</div>
-                          <div class="text-xs text-gray-600">출석률↑↑, 모든 능력치↓</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="md:col-span-2">
-                <div class="bg-blue-50 p-4 rounded-xl">
-                  <div class="font-bold mb-2">직업 결과 상세 예시</div>
-                  <div class="bg-white p-4 rounded-lg shadow-sm">
-                    <div class="mb-3 text-center">
-                      <div class="text-5xl mb-2">👨‍💻</div>
-                      <div class="text-xl font-bold text-blue-600">스타트업 4호 개발자</div>
-                    </div>
-                    <div class="text-sm text-gray-600 text-center italic mb-3">
-                      "월화수목금금금 야근으로 머리가 벗겨지기 시작했지만,<br />
-                      스톡옵션이라는 희망의 끈을 놓지 않는 당신"
-                    </div>
-                    <div class="grid grid-cols-3 gap-3 mb-3">
-                      <div class="text-center">
-                        <div class="text-sm text-gray-500">지능</div>
-                        <div class="font-bold">85%</div>
-                      </div>
-                      <div class="text-center">
-                        <div class="text-sm text-gray-500">체력</div>
-                        <div class="font-bold">40%</div>
-                      </div>
-                      <div class="text-center">
-                        <div class="text-sm text-gray-500">출석률</div>
-                        <div class="font-bold">95%</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `
-        },
-        
-        // 슬라이드 5: 재미 요소
-        {
-          id: 'fun',
-          title: '재미 요소',
-          content: `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="bg-white p-5 rounded-xl shadow-md">
-                <div class="text-lg font-bold mb-3">미니게임 시스템</div>
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                  <div class="bg-blue-50 p-3 rounded-lg text-center">
-                    <div class="text-xl mb-1">✂️</div>
-                    <div class="text-xs">가위바위보</div>
-                    <div class="text-xs text-blue-500 font-medium">승리 시 8골드</div>
-                  </div>
-                  <div class="bg-green-50 p-3 rounded-lg text-center">
-                    <div class="text-xl mb-1">🎲</div>
-                    <div class="text-xs">홀짝 게임</div>
-                    <div class="text-xs text-blue-500 font-medium">승리 시 8골드</div>
-                  </div>
-                  <div class="bg-yellow-50 p-3 rounded-lg text-center">
-                    <div class="text-xl mb-1">🍎</div>
-                    <div class="text-xs">사과 게임</div>
-                    <div class="text-xs text-blue-500 font-medium">최대 50골드</div>
-                  </div>
-                </div>
-                
-                <div class="bg-gray-100 p-4 rounded-lg mb-4">
-                  <div class="flex justify-between mb-4">
-                    <div class="text-center">
-                      <div class="text-sm mb-2">나</div>
-                      <div class="text-4xl">✊</div>
-                    </div>
-                    <div class="flex items-center text-xl font-bold text-red-500">
-                      VS
-                    </div>
-                    <div class="text-center">
-                      <div class="text-sm mb-2">컴퓨터</div>
-                      <div class="text-4xl">✌️</div>
-                    </div>
-                  </div>
-                  
-                  <div class="bg-red-100 text-red-600 text-center p-2 rounded-lg mb-2 text-sm font-bold">
-                    패배했습니다!
-                  </div>
-                  
-                  <div class="text-xs text-center text-gray-500">
-                    진정한 승부사는 연속 패배도 두렵지 않다... 라고 합니다
-                  </div>
-                </div>
-                
-                <p class="text-xs text-gray-600">
-                  광고 시청 후 확정 보상(3골드) 또는 미니게임 도전 중 선택할 수 있습니다.
-                  미니게임에서 승리하면 더 많은 골드를 획득할 수 있습니다!
-                </p>
-              </div>
-              
-              <div class="space-y-4">
-                <div class="bg-white p-5 rounded-xl shadow-md">
-                  <div class="text-lg font-bold mb-3">아이템 상점</div>
-                  <div class="space-y-3">
-                    <div class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
-                      <div class="flex justify-between items-center">
-                        <div class="flex items-center">
-                          <div class="text-2xl mr-3">☕</div>
-                          <div>
-                            <div class="font-bold text-sm">맥심 커피</div>
-                            <div class="text-xs text-gray-500">에너지 +5</div>
-                          </div>
-                        </div>
-                        <button class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded">
-                          10 골드
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
-                      <div class="flex justify-between items-center">
-                        <div class="flex items-center">
-                          <div class="text-2xl mr-3">📱</div>
-                          <div>
-                            <div class="font-bold text-sm">중고 아이폰 SE</div>
-                            <div class="text-xs text-gray-500">지능 +10, 사교성 -5</div>
-                          </div>
-                        </div>
-                        <button class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded">
-                          50 골드
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
-                      <div class="flex justify-between items-center">
-                        <div class="flex items-center">
-                          <div class="text-2xl mr-3">🍕</div>
-                          <div>
-                            <div class="font-bold text-sm">도미노 피자</div>
-                            <div class="text-xs text-gray-500">체력 +8, 건강 -3</div>
-                          </div>
-                        </div>
-                        <button class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded">
-                          25 골드
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="text-xs text-gray-600 mt-3">
-                    현실적이고 코믹한 아이템들로 능력치를 조정하여 미래 직업을 변화시킬 수 있습니다.
-                  </p>
-                </div>
-                
-                <div class="bg-white p-5 rounded-xl shadow-md">
-                  <div class="text-lg font-bold mb-3">유머 텍스트</div>
-                  <div class="space-y-2">
-                    <div class="bg-gray-50 p-2 rounded-lg text-sm">
-                      "면접관: 당신의 장점은? 나: 출석률이 좋습니다"
-                    </div>
-                    <div class="bg-gray-50 p-2 rounded-lg text-sm">
-                      "지능 0, 출석률 100 = 열정만렙 빌드"
-                    </div>
-                    <div class="bg-gray-50 p-2 rounded-lg text-sm">
-                      "오늘도 인증 안 하면 평생 인턴!"
-                    </div>
-                  </div>
-                  <p class="text-xs text-gray-600 mt-3">
-                    타임라인과 인증 시 재미있는 코멘트로 동기부여를 제공합니다.
-                  </p>
-                </div>
-              </div>
-            </div>
-          `
-        },
-        
-        // 슬라이드 6: 바이럴 요소 
-        {
-          id: 'viral',
-          title: '바이럴 요소',
-          content: `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div class="bg-white p-5 rounded-xl shadow-md mb-5">
-                  <div class="text-lg font-bold mb-3">결과 공유 화면</div>
-                  <div class="bg-gray-100 p-4 rounded-xl">
-                    <div class="text-center mb-5">
-                      <div class="text-7xl mb-3">👨‍💻</div>
-                      <div class="text-xl font-bold text-blue-600 mb-2">
-                        스타트업 4호 개발자
-                      </div>
-                      <div class="text-sm text-gray-600 italic mb-3">
-                        "월화수목금금금 야근으로 머리가 벗겨지기 시작했지만,<br />
-                        스톡옵션이라는 희망의 끈을 놓지 않는 당신"
-                      </div>
-                    </div>
-                    
-                    <div class="flex justify-center gap-3 mb-4">
-                      <div class="bg-blue-50 p-2 rounded-lg text-center flex-1 max-w-24">
-                        <div class="text-xs text-gray-500">출석률</div>
-                        <div class="font-bold">95%</div>
-                      </div>
-                      <div class="bg-green-50 p-2 rounded-lg text-center flex-1 max-w-24">
-                        <div class="text-xs text-gray-500">지능</div>
-                        <div class="font-bold">85%</div>
-                      </div>
-                      <div class="bg-red-50 p-2 rounded-lg text-center flex-1 max-w-24">
-                        <div class="text-xs text-gray-500">체력</div>
-                        <div class="font-bold">40%</div>
-                      </div>
-                    </div>
-                    
-                    <div class="bg-blue-100 p-2 rounded-lg text-center text-xs text-blue-800">
-                      #목표달성orDie #현실빙의 #스타트업4호개발자
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="bg-white p-5 rounded-xl shadow-md">
-                  <div class="text-lg font-bold mb-3">바이럴 가능성</div>
-                  <div class="space-y-3">
-                    <div class="flex items-start">
-                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
-                        1
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm mb-1">강한 공감 요소</div>
-                        <p class="text-xs text-gray-600">
-                          한국 사회의 직장 문화, 취업 스트레스, 대학 입시 등 현실적 요소를 코믹하게 풀어내어 공감대 형성
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div class="flex items-start">
-                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
-                        2
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm mb-1">자발적 결과 공유</div>
-                        <p class="text-xs text-gray-600">
-                          "평생 인턴", "PC방 만렙" 등 코믹한 결과를 친구들과 공유하고 싶은 욕구 유발
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div class="flex items-start">
-                      <div class="min-w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-2 mt-0.5 text-xs font-bold">
-                        3
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm mb-1">밈(meme) 가능성</div>
-                        <p class="text-xs text-gray-600">
-                          "월화수목금금금 야근" 같은 표현이 밈으로 퍼져나갈 가능성
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <div class="bg-white p-5 rounded-xl shadow-md mb-5">
-                  <div class="text-lg font-bold mb-3">가상 트윗 예시</div>
-                  <div class="space-y-4">
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                      <div class="flex items-start">
-                        <div class="min-w-8 h-8 rounded-full overflow-hidden mr-3 bg-gray-400"></div>
-                        <div>
-                          <div class="font-bold">개발자 지망생</div>
-                          <div class="text-sm text-gray-600 mb-2">
-                            '목표 달성 or Die' 앱 써봤는데 존웃ㅋㅋㅋ 코딩 공부 120일 했더니 "스타트업 4호 개발자"라는 결과 나왔음ㅠㅠ "월화수목금금금 야근" 설명까지 있는데 현실 빙의 수준임💀
-                          </div>
-                          <div class="flex items-center text-xs text-gray-500 gap-4">
-                            <span>❤️ 2.4k</span>
-                            <span>🔁 1.2k</span>
-                            <span>💬 340</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                      <div class="flex items-start">
-                        <div class="min-w-8 h-8 rounded-full overflow-hidden mr-3 bg-gray-400"></div>
-                        <div>
-                          <div class="font-bold">OO대 취준생</div>
-                          <div class="text-sm text-gray-600 mb-2">
-                            출석률 타이트하게 안지켰더니 "평생 인턴 10년차" 직업이 나왔다... 이게 현실이 될까봐 무섭다ㅋㅋㅋㅠㅠ #목표달성orDie
-                          </div>
-                          <div class="flex items-center text-xs text-gray-500 gap-4">
-                            <span>❤️ 3.8k</span>
-                            <span>🔁 2.5k</span>
-                            <span>💬 582</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="bg-blue-50 p-5 rounded-xl">
-                  <div class="text-center mb-3">
-                    <div class="text-lg font-bold mb-1">핵심 해시태그</div>
-                    <div class="flex flex-wrap justify-center gap-2">
-                      <div class="bg-blue-100 px-3 py-1 rounded-full text-sm">
-                        #목표달성orDie
-                      </div>
-                      <div class="bg-blue-100 px-3 py-1 rounded-full text-sm">
-                        #현실빙의
-                      </div>
-                      <div class="bg-blue-100 px-3 py-1 rounded-full text-sm">
-                        #인생시뮬레이터
-                      </div>
-                    </div>
-                  </div>
-                  <p class="text-sm text-gray-600 text-center">
-                    현실에 기반한 B급 유머와 공감되는 코믹한 직업 결과로<br/>
-                    사용자들이 자발적으로 결과를 공유하게 됩니다.
-                  </p>
-                </div>
-              </div>
-            </div>
-          `
-        },
-        
-        // 슬라이드 7: 마무리
-        {
-          id: 'conclusion',
-          title: '최종 요약',
-          content: `
-            <div class="text-center">
-              <div class="text-4xl mb-8">👶→👦→👨</div>
-              <h3 class="text-xl font-bold mb-4">목표 달성 or Die</h3>
-              <div class="max-w-lg mx-auto mb-8">
-                <p class="text-gray-600 mb-4">
-                  매일 한 번의 인증으로 캐릭터가 성장하고 다양한 한국형 B급 코믹 직업으로 발전하는 특별한 습관 형성 앱입니다.
-                </p>
-                <p class="text-gray-600">
-                  현실에서 공감되는 재미있는 결말로 사용자의 지속적인 참여를 유도하고, 트위터에서 바이럴이 될 수 있는 콘텐츠를 제공합니다.
-                </p>
-              </div>
-              
-              <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-8">
-                <div class="bg-blue-50 p-3 rounded-lg">
-                  <div class="text-2xl mb-2">📱</div>
-                  <div class="text-sm font-medium">매일 한 번 인증</div>
-                </div>
-                <div class="bg-green-50 p-3 rounded-lg">
-                  <div class="text-2xl mb-2">👨‍💻</div>
-                  <div class="text-sm font-medium">능력치 성장</div>
-                </div>
-                <div class="bg-yellow-50 p-3 rounded-lg">
-                  <div class="text-2xl mb-2">🏆</div>
-                  <div class="text-sm font-medium">B급 코믹 엔딩</div>
-                </div>
-              </div>
-              
-              <div class="text-blue-500 font-bold text-xl">
-                "열심히 안 하면... 평생 인턴!"
-              </div>
-            </div>
-          `
-        }
-      ];
-      
-      // 상태 변수들
-      let currentSlide = 0;
-      const totalSlides = slides.length;
-      
-      // DOM 요소 참조
-      const slideTitle = document.getElementById('slideTitle');
-      const slideContent = document.getElementById('slideContent');
-      const slideCounter = document.getElementById('slideCounter');
-      const prevBtn = document.getElementById('prevBtn');
-      const nextBtn = document.getElementById('nextBtn');
-      
-      // 슬라이드 업데이트 함수
-      function updateSlide(index) {
-        // 슬라이드 내용이 변경되는 애니메이션을 위해 클래스 추가
-        slideContent.classList.add('slide-exit');
-        
-        setTimeout(() => {
-          // 타이틀과 내용 업데이트
-          slideTitle.querySelector('h2').textContent = slides[index].title;
-          slideContent.innerHTML = slides[index].content;
-          slideCounter.textContent = `슬라이드 ${index + 1} / ${totalSlides}`;
-          
-          // 버튼 상태 업데이트
-          prevBtn.disabled = index === 0;
-          prevBtn.className = index === 0 
-            ? 'flex items-center text-gray-300 cursor-not-allowed' 
-            : 'flex items-center text-blue-500 hover:text-blue-700';
-          
-          nextBtn.disabled = index === totalSlides - 1;
-          nextBtn.className = index === totalSlides - 1 
-            ? 'flex items-center text-gray-300 cursor-not-allowed' 
-            : 'flex items-center text-blue-500 hover:text-blue-700';
-          
-          // 들어오는 애니메이션
-          slideContent.classList.remove('slide-exit');
-          slideContent.classList.add('slide-enter');
-          
-          setTimeout(() => {
-            slideContent.classList.remove('slide-enter');
-            slideContent.classList.add('slide-active');
-            
-            // 능력치 바 애니메이션 효과
-            const statBars = document.querySelectorAll('.stat-bar');
-            statBars.forEach(bar => {
-              const width = bar.style.width;
-              bar.style.width = '0%';
-              setTimeout(() => {
-                bar.style.width = width;
-              }, 100);
-            });
-            
-            // 직업 카드에 호버 효과 추가
-            const jobCards = document.querySelectorAll('.job-card');
-            jobCards.forEach(card => {
-              card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-3px)';
-                card.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
-              });
-              card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-                card.style.boxShadow = 'none';
-              });
-            });
-            
-          }, 50);
-        }, 200);
-      }
-      
-      // 네비게이션 버튼 이벤트 리스너
-      prevBtn.addEventListener('click', () => {
-        if (currentSlide > 0) {
-          currentSlide--;
-          updateSlide(currentSlide);
-        }
-      });
-      
-      nextBtn.addEventListener('click', () => {
-        if (currentSlide < totalSlides - 1) {
-          currentSlide++;
-          updateSlide(currentSlide);
-        }
-      });
-      
-      // 키보드 네비게이션
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) {
-          currentSlide++;
-          updateSlide(currentSlide);
-        } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
-          currentSlide--;
-          updateSlide(currentSlide);
-        }
-      });
-      
-      // 초기 슬라이드 로딩
-      updateSlide(currentSlide);
-      
-      // 앱 미리보기 기능 ----------------------------------
-      
-      // 탭 버튼들
-      const homeTabBtn = document.getElementById('homeTabBtn');
-      const shopTabBtn = document.getElementById('shopTabBtn');
-      const profileTabBtn = document.getElementById('profileTabBtn');
-      
-      // 탭 콘텐츠들
-      const homeTab = document.getElementById('homeTab');
-      const shopTab = document.getElementById('shopTab');
-      const profileTab = document.getElementById('profileTab');
-      const gameTab = document.getElementById('gameTab');
-      
-      // 인증 버튼, 광고 버튼
-      const checkInBtn = document.getElementById('checkInBtn');
-      const adBtn = document.getElementById('adBtn');
-      
-      // 게임 관련 요소들
-      const gameButtons = document.querySelectorAll('.game-btn');
-      const gameResult = document.getElementById('gameResult');
-      const backBtn = document.getElementById('backBtn');
-      
-      // 상점 아이템 버튼들
-      const shopItems = document.querySelectorAll('.shop-item');
+      // 탭 전환 관련 변수
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
       
       // 탭 전환 함수
       function switchTab(tabId) {
         // 모든 탭 버튼 비활성화
-        homeTabBtn.classList.remove('text-blue-400');
-        shopTabBtn.classList.remove('text-blue-400');
-        profileTabBtn.classList.remove('text-blue-400');
-        
-        homeTabBtn.classList.add('text-gray-400');
-        shopTabBtn.classList.add('text-gray-400');
-        profileTabBtn.classList.add('text-gray-400');
+        tabBtns.forEach(btn => {
+          btn.classList.remove('active');
+        });
         
         // 클릭한 탭 버튼 활성화
         if (tabId === 'homeTab') {
-          homeTabBtn.classList.remove('text-gray-400');
-          homeTabBtn.classList.add('text-blue-400');
+          document.getElementById('homeTabBtn').classList.add('active');
         } else if (tabId === 'shopTab') {
-          shopTabBtn.classList.remove('text-gray-400');
-          shopTabBtn.classList.add('text-blue-400');
+          document.getElementById('shopTabBtn').classList.add('active');
         } else if (tabId === 'profileTab') {
-          profileTabBtn.classList.remove('text-gray-400');
-          profileTabBtn.classList.add('text-blue-400');
+          document.getElementById('profileTabBtn').classList.add('active');
         }
         
         // 모든 탭 콘텐츠 숨기기
-        homeTab.classList.add('hidden');
-        shopTab.classList.add('hidden');
-        profileTab.classList.add('hidden');
-        gameTab.classList.add('hidden');
-        
-        homeTab.classList.remove('active');
-        shopTab.classList.remove('active');
-        profileTab.classList.remove('active');
-        gameTab.classList.remove('active');
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
         
         // 해당 탭 보이기
         document.getElementById(tabId).classList.remove('hidden');
         document.getElementById(tabId).classList.add('active');
       }
       
+      // 골드 동기화 함수
+      function syncGold() {
+        const goldValue = document.getElementById('gold').textContent;
+        document.getElementById('shopGold').textContent = goldValue;
+      }
+      
+      // 토스트 메시지 표시 함수
+      function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        
+        if (type === 'success') {
+          toast.classList.add('bg-green-600');
+        } else if (type === 'error') {
+          toast.classList.add('bg-red-600');
+        } else if (type === 'info') {
+          toast.classList.add('bg-blue-600');
+        }
+        
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 3초 후 제거
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 3000);
+      }
+      
       // 탭 버튼 이벤트 리스너
-      homeTabBtn.addEventListener('click', () => switchTab('homeTab'));
-      shopTabBtn.addEventListener('click', () => switchTab('shopTab'));
-      profileTabBtn.addEventListener('click', () => switchTab('profileTab'));
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          let targetId = '';
+          if (btn.id === 'homeTabBtn') targetId = 'homeTab';
+          else if (btn.id === 'shopTabBtn') targetId = 'shopTab';
+          else if (btn.id === 'profileTabBtn') targetId = 'profileTab';
+          
+          switchTab(targetId);
+          
+          // 상점 탭으로 이동 시 골드 동기화
+          if (targetId === 'shopTab') {
+            syncGold();
+          }
+        });
+      });
       
       // 골드 버튼 클릭 시 상점으로 이동
       document.getElementById('goldBtn').addEventListener('click', () => {
         switchTab('shopTab');
+        syncGold();
       });
       
+      // 광고 시청 함수
+      function watchAd(callback) {
+        // 광고 화면으로 전환
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
+        const adWatchTab = document.getElementById('adWatchTab');
+        adWatchTab.classList.remove('hidden');
+        adWatchTab.classList.add('active');
+        
+        let timeLeft = 5;
+        document.getElementById('adTimeLeft').textContent = timeLeft;
+        
+        // 광고 진행 바 애니메이션
+        const adProgress = document.getElementById('adProgress');
+        adProgress.style.width = '0%';
+        
+        // 광고 시간 진행
+        const adInterval = setInterval(() => {
+          timeLeft--;
+          document.getElementById('adTimeLeft').textContent = timeLeft;
+          adProgress.style.width = `${(5 - timeLeft) * 20}%`;
+          
+          if (timeLeft <= 0) {
+            clearInterval(adInterval);
+            
+            // 광고 건너뛰기 버튼 활성화
+            document.getElementById('skipAdBtn').disabled = false;
+            document.getElementById('skipAdBtn').classList.remove('bg-gray-300', 'text-gray-500');
+            document.getElementById('skipAdBtn').classList.add('bg-yellow-500', 'text-white');
+            
+            // 광고 완료 후 콜백 실행
+            document.getElementById('skipAdBtn').addEventListener('click', () => {
+              if (callback) callback();
+            }, { once: true });
+          }
+        }, 1000);
+      }
+      
       // 인증하기 버튼 기능
-      checkInBtn.addEventListener('click', function() {
+      document.getElementById('checkInBtn').addEventListener('click', function() {
         // 카메라 화면으로 전환
-        homeTab.classList.add('hidden');
-        homeTab.classList.remove('active');
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
         document.getElementById('cameraTab').classList.remove('hidden');
         document.getElementById('cameraTab').classList.add('active');
       });
       
       // 카메라 취소 버튼
       document.getElementById('cancelCameraBtn').addEventListener('click', () => {
-        // 홈 화면으로 돌아가기
-        document.getElementById('cameraTab').classList.add('hidden');
-        document.getElementById('cameraTab').classList.remove('active');
-        homeTab.classList.remove('hidden');
-        homeTab.classList.add('active');
+        switchTab('homeTab');
       });
       
       // 촬영 버튼
       document.getElementById('captureBtn').addEventListener('click', function() {
         // 카메라 애니메이션
         const viewfinder = document.getElementById('cameraViewfinder');
+        const overlay = document.getElementById('cameraOverlay');
+        
         viewfinder.textContent = '📸';
         
         // 플래시 효과
-        document.getElementById('cameraTab').classList.add('bg-white');
+        overlay.style.opacity = '1';
+        setTimeout(() => {
+          overlay.style.opacity = '0';
+        }, 150);
         
         // 인증 완료 화면으로 전환
         setTimeout(() => {
-          document.getElementById('cameraTab').classList.remove('bg-white');
-          document.getElementById('cameraTab').classList.add('hidden');
-          document.getElementById('cameraTab').classList.remove('active');
+          tabContents.forEach(content => {
+            content.classList.add('hidden');
+            content.classList.remove('active');
+          });
+          
           document.getElementById('checkInCompleteTab').classList.remove('hidden');
           document.getElementById('checkInCompleteTab').classList.add('active');
           
@@ -1747,36 +1061,25 @@
       
       // 인증 완료 확인 버튼
       document.getElementById('checkInDoneBtn').addEventListener('click', () => {
-        // 홈 화면으로 돌아가기
-        document.getElementById('checkInCompleteTab').classList.add('hidden');
-        document.getElementById('checkInCompleteTab').classList.remove('active');
-        homeTab.classList.remove('hidden');
-        homeTab.classList.add('active');
+        switchTab('homeTab');
+        
+        // 알림 표시
+        showToast('10 골드가 지급되었습니다!', 'success');
       });
       
-      // 광고 보기 버튼 기능
-      adBtn.addEventListener('click', function() {
-        // 버튼 상태 변경
-        this.disabled = true;
-        this.textContent = '광고 재생 중...';
-        
-        // 광고 시뮬레이션 (2초)
-        setTimeout(() => {
-          // 광고 완료 후 선택 화면 표시
-          this.textContent = '광고 시청 완료!';
+      // 광고보기 버튼 기능
+      document.getElementById('adBtn').addEventListener('click', function() {
+        // 광고 시청
+        watchAd(() => {
+          // 광고 완료 후 게임 선택 화면으로 전환
+          tabContents.forEach(content => {
+            content.classList.add('hidden');
+            content.classList.remove('active');
+          });
           
-          setTimeout(() => {
-            // 선택 화면으로 전환
-            homeTab.classList.add('hidden');
-            homeTab.classList.remove('active');
-            document.getElementById('adCompleteTab').classList.remove('hidden');
-            document.getElementById('adCompleteTab').classList.add('active');
-            
-            // 버튼 복원
-            this.disabled = false;
-            this.innerHTML = '<span class="mr-1">🎬</span><span>광고보고 골드 받기</span>';
-          }, 1000);
-        }, 2000);
+          document.getElementById('adCompleteTab').classList.remove('hidden');
+          document.getElementById('adCompleteTab').classList.add('active');
+        });
       });
       
       // 3골드 확정 선택
@@ -1786,48 +1089,58 @@
         gold.textContent = parseInt(gold.textContent) + 3;
         
         // 홈 화면으로 돌아가기
-        document.getElementById('adCompleteTab').classList.add('hidden');
-        document.getElementById('adCompleteTab').classList.remove('active');
-        homeTab.classList.remove('hidden');
-        homeTab.classList.add('active');
+        switchTab('homeTab');
         
-        // 성공 메시지 표시
-        const message = document.createElement('div');
-        message.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-100 text-green-800 px-4 py-2 rounded-lg text-center font-bold text-sm z-50';
-        message.textContent = '+3 골드 획득!';
-        document.body.appendChild(message);
-        
-        // 2초 후 메시지 제거
-        setTimeout(() => {
-          document.body.removeChild(message);
-        }, 2000);
+        // 알림 표시
+        showToast('3 골드가 지급되었습니다!', 'success');
       });
       
       // 게임 선택 버튼들
       document.getElementById('rpsGameBtn').addEventListener('click', () => {
         // 게임 선택 화면 숨기기
-        document.getElementById('adCompleteTab').classList.add('hidden');
-        document.getElementById('adCompleteTab').classList.remove('active');
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
         
         // 가위바위보 게임 화면 표시
         document.getElementById('rpsGameTab').classList.remove('hidden');
         document.getElementById('rpsGameTab').classList.add('active');
+        
+        // 결과 초기화
+        document.getElementById('rpsResult').classList.add('hidden');
+        document.getElementById('rpsWinResult').classList.add('hidden');
+        document.getElementById('rpsLoseResult').classList.add('hidden');
+        document.getElementById('rpsDrawResult').classList.add('hidden');
+        document.getElementById('rpsAgainBtn').classList.add('hidden');
+        
+        // 가위바위보 버튼 활성화
+        document.querySelectorAll('.rps-choice').forEach(btn => {
+          btn.disabled = false;
+        });
       });
       
       document.getElementById('oddEvenGameBtn').addEventListener('click', () => {
         // 게임 선택 화면 숨기기
-        document.getElementById('adCompleteTab').classList.add('hidden');
-        document.getElementById('adCompleteTab').classList.remove('active');
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
         
         // 홀짝 게임 화면 표시
         document.getElementById('oddEvenGameTab').classList.remove('hidden');
         document.getElementById('oddEvenGameTab').classList.add('active');
+        
+        // 홀짝 게임 초기화
+        initOddEvenGame();
       });
       
       document.getElementById('appleGameBtn').addEventListener('click', () => {
         // 게임 선택 화면 숨기기
-        document.getElementById('adCompleteTab').classList.add('hidden');
-        document.getElementById('adCompleteTab').classList.remove('active');
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
         
         // 사과 게임 화면 표시
         document.getElementById('appleGameTab').classList.remove('hidden');
@@ -1895,31 +1208,55 @@
       
       // 가위바위보 뒤로가기 버튼
       document.getElementById('rpsBackBtn').addEventListener('click', () => {
-        // 게임 화면 숨기기
-        document.getElementById('rpsGameTab').classList.add('hidden');
-        document.getElementById('rpsGameTab').classList.remove('active');
-        
-        // 홈 화면 표시
-        homeTab.classList.remove('hidden');
-        homeTab.classList.add('active');
+        switchTab('homeTab');
       });
       
       // 가위바위보 다시하기 버튼
       document.getElementById('rpsAgainBtn').addEventListener('click', () => {
-        // 결과 숨기기
-        document.getElementById('rpsResult').classList.add('hidden');
-        
-        // 버튼 활성화
-        rpsChoices.forEach(btn => btn.disabled = false);
-        
-        // 다시하기 버튼 숨기기
-        document.getElementById('rpsAgainBtn').classList.add('hidden');
+        // 광고 시청 후 다시하기
+        watchAd(() => {
+          // 결과 숨기기
+          document.getElementById('rpsResult').classList.add('hidden');
+          
+          // 버튼 활성화
+          rpsChoices.forEach(btn => btn.disabled = false);
+          
+          // 다시하기 버튼 숨기기
+          document.getElementById('rpsAgainBtn').classList.add('hidden');
+        });
       });
       
       // 홀짝 게임 관련 코드
       const oddBtn = document.getElementById('oddBtn');
       const evenBtn = document.getElementById('evenBtn');
       let diceNumber = 0;
+      
+      function initOddEvenGame() {
+        // 홀짝 게임 초기화
+        document.getElementById('oddEvenStage1').classList.remove('hidden');
+        document.getElementById('oddEvenStage1').classList.add('active-stage');
+        document.getElementById('oddEvenStage2').classList.add('hidden');
+        document.getElementById('oddEvenStage2').classList.remove('active-stage');
+        document.getElementById('diceResult').classList.add('hidden');
+        document.getElementById('oddEvenWinResult').classList.add('hidden');
+        document.getElementById('exactNumberWinResult').classList.add('hidden');
+        document.getElementById('oddEvenLoseResult').classList.add('hidden');
+        document.getElementById('oddEvenAgainBtn').classList.add('hidden');
+        
+        // 주사위 초기화
+        document.getElementById('dice').textContent = '🎲';
+        
+        // 버튼 활성화
+        oddBtn.disabled = false;
+        evenBtn.disabled = false;
+        oddBtn.classList.remove('selected', 'ring-2', 'ring-white');
+        evenBtn.classList.remove('selected', 'ring-2', 'ring-white');
+        
+        // 숫자 버튼 활성화
+        document.querySelectorAll('.exact-number-btn').forEach(btn => {
+          btn.disabled = false;
+        });
+      }
       
       function playDiceRoll() {
         // 버튼 비활성화
@@ -1972,6 +1309,9 @@
               document.getElementById('oddEvenStage2').classList.add('hidden');
               document.getElementById('oddEvenStage2').classList.remove('active-stage');
               document.getElementById('oddEvenAgainBtn').classList.remove('hidden');
+              
+              // 알림 표시
+              showToast('8 골드가 지급되었습니다!', 'success');
             });
           } else {
             // 패배
@@ -2030,6 +1370,9 @@
             // 골드 증가 (총 30골드)
             const gold = document.getElementById('gold');
             gold.textContent = parseInt(gold.textContent) + 30;
+            
+            // 알림 표시
+            showToast('30 골드가 지급되었습니다!', 'success');
           } else {
             // 실패했지만 1단계는 성공했으므로 8골드는 획득
             oddEvenLoseResult.textContent = `틀렸습니다! 그래도 8골드는 획득!`;
@@ -2038,6 +1381,9 @@
             // 골드 증가 (8골드)
             const gold = document.getElementById('gold');
             gold.textContent = parseInt(gold.textContent) + 8;
+            
+            // 알림 표시
+            showToast('8 골드가 지급되었습니다!', 'info');
           }
           
           // 2단계 숨기기
@@ -2051,43 +1397,15 @@
       
       // 홀짝 게임 뒤로가기 버튼
       document.getElementById('oddEvenBackBtn').addEventListener('click', () => {
-        // 게임 화면 숨기기
-        document.getElementById('oddEvenGameTab').classList.add('hidden');
-        document.getElementById('oddEvenGameTab').classList.remove('active');
-        
-        // 홈 화면 표시
-        homeTab.classList.remove('hidden');
-        homeTab.classList.add('active');
+        switchTab('homeTab');
       });
       
       // 홀짝 게임 다시하기 버튼
       document.getElementById('oddEvenAgainBtn').addEventListener('click', () => {
-        // 결과 숨기기
-        document.getElementById('diceResult').classList.add('hidden');
-        document.getElementById('oddEvenWinResult').classList.add('hidden');
-        document.getElementById('exactNumberWinResult').classList.add('hidden');
-        document.getElementById('oddEvenLoseResult').classList.add('hidden');
-        
-        // 버튼 활성화
-        oddBtn.disabled = false;
-        evenBtn.disabled = false;
-        exactNumberBtns.forEach(btn => btn.disabled = false);
-        
-        // 선택 초기화
-        oddBtn.classList.remove('selected', 'ring-2', 'ring-white');
-        evenBtn.classList.remove('selected', 'ring-2', 'ring-white');
-        
-        // 주사위 초기화
-        document.getElementById('dice').textContent = '🎲';
-        
-        // 단계 초기화
-        document.getElementById('oddEvenStage1').classList.remove('hidden');
-        document.getElementById('oddEvenStage1').classList.add('active-stage');
-        document.getElementById('oddEvenStage2').classList.add('hidden');
-        document.getElementById('oddEvenStage2').classList.remove('active-stage');
-        
-        // 다시하기 버튼 숨기기
-        document.getElementById('oddEvenAgainBtn').classList.add('hidden');
+        // 광고 시청 후 다시하기
+        watchAd(() => {
+          initOddEvenGame();
+        });
       });
       
       // 사과 게임 관련 코드
@@ -2115,16 +1433,12 @@
         const appleTree = document.getElementById('appleTree');
         
         // 나무 흔드는 애니메이션
-        appleTree.style.transform = 'rotate(-5deg)';
-        setTimeout(() => {
-          appleTree.style.transform = 'rotate(5deg)';
-          setTimeout(() => {
-            appleTree.style.transform = 'rotate(0)';
-          }, 100);
-        }, 100);
+        appleTree.classList.add('shake');
         
         // 사과 떨어뜨리기
         setTimeout(() => {
+          appleTree.classList.remove('shake');
+          
           if (appleCount < maxApples) {
             generateApple();
             
@@ -2140,11 +1454,16 @@
               document.getElementById('finalAppleGold').textContent = '0';
               document.getElementById('appleGold').textContent = '0';
               document.getElementById('shakeBtn').disabled = true;
+              
+              // 알림 표시
+              showToast('앗! 모든 사과가 떨어졌습니다', 'error');
               return;
             }
             
             // 버튼 다시 활성화
-            this.disabled = false;
+            setTimeout(() => {
+              this.disabled = false;
+            }, 300);
           } else {
             // 게임 종료
             appleGameActive = false;
@@ -2155,6 +1474,9 @@
             // 골드 증가
             const gold = document.getElementById('gold');
             gold.textContent = parseInt(gold.textContent) + appleGold;
+            
+            // 알림 표시
+            showToast(`${appleGold} 골드가 지급되었습니다!`, 'success');
           }
         }, 300);
       });
@@ -2163,7 +1485,7 @@
         const appleContainer = document.getElementById('appleContainer');
         const apple = document.createElement('div');
         apple.textContent = '🍎';
-        apple.className = 'absolute text-xl';
+        apple.className = 'absolute text-2xl';
         
         // 랜덤 위치
         const left = Math.floor(Math.random() * 80) + 10; // 10% ~ 90%
@@ -2173,29 +1495,19 @@
         appleContainer.appendChild(apple);
         
         // 떨어지는 애니메이션
-        let top = 0;
-        const fallInterval = setInterval(() => {
-          top += 5;
-          apple.style.top = `${top}%`;
-          
-          // 바닥에 닿으면 정지
-          if (top >= 70) {
-            clearInterval(fallInterval);
-            appleCount++;
-            document.getElementById('appleCount').textContent = appleCount;
-          }
-        }, 50);
+        apple.classList.add('apple-falling');
+        
+        // 바닥에 닿으면 카운트 증가
+        setTimeout(() => {
+          appleCount++;
+          document.getElementById('appleCount').textContent = appleCount;
+          apple.remove();
+        }, 1000);
       }
       
       // 사과 게임 뒤로가기 버튼
       document.getElementById('appleBackBtn').addEventListener('click', () => {
-        // 게임 화면 숨기기
-        document.getElementById('appleGameTab').classList.add('hidden');
-        document.getElementById('appleGameTab').classList.remove('active');
-        
-        // 홈 화면 표시
-        homeTab.classList.remove('hidden');
-        homeTab.classList.add('active');
+        switchTab('homeTab');
       });
       
       // 사과 게임 현재 골드 받기 버튼
@@ -2210,126 +1522,10 @@
           document.getElementById('appleGameResult').classList.remove('hidden');
           document.getElementById('finalAppleGold').textContent = appleGold;
           document.getElementById('shakeBtn').disabled = true;
+          
+          // 알림 표시
+          showToast(`${appleGold} 골드가 지급되었습니다!`, 'success');
         }
-      });
-      
-      // 가위바위보 게임 버튼 이벤트
-      gameButtons.forEach(button => {
-        button.addEventListener('click', function() {
-          // 사용자가 선택한 항목 표시
-          const playerChoice = this.getAttribute('data-choice');
-          
-          // 70% 확률로 승리
-          const win = Math.random() < 0.7;
-          
-          if (win) {
-            // 승리 결과 표시
-            gameResult.textContent = '승리! 8골드 획득!';
-            gameResult.className = 'text-center text-xs font-bold bg-green-100 text-green-600 p-2 rounded-lg';
-            
-            // 골드 증가
-            const gold = document.getElementById('gold');
-            gold.textContent = parseInt(gold.textContent) + 8;
-          } else {
-            // 패배 결과 표시
-            gameResult.textContent = '패배! 다시 도전해보세요.';
-            gameResult.className = 'text-center text-xs font-bold bg-red-100 text-red-600 p-2 rounded-lg';
-          }
-        });
-      });
-      
-      // 게임에서 돌아가기 버튼
-      backBtn.addEventListener('click', () => {
-        switchTab('homeTab');
-        gameResult.textContent = '';
-      });
-      
-      // 상점 아이템 구매 버튼 이벤트
-      shopItems.forEach(item => {
-        item.addEventListener('click', function() {
-          const price = parseInt(this.getAttribute('data-price'));
-          const statType = this.getAttribute('data-stat');
-          const statValue = parseInt(this.getAttribute('data-value'));
-          const gold = document.getElementById('gold');
-          const currentGold = parseInt(gold.textContent);
-          
-          if (currentGold >= price) {
-            // 구매 성공
-            gold.textContent = currentGold - price;
-            this.textContent = '구매 완료!';
-            this.className = 'shop-item bg-green-600 text-white text-xxs font-bold px-2 py-0.5 rounded';
-            
-            // 능력치 증가
-            if (statType === 'intelligence') {
-              const intelligence = document.getElementById('intelligence');
-              const profileIntelligence = document.getElementById('profileIntelligence');
-              const intelligenceBar = document.getElementById('intelligenceBar');
-              const profileIntelligenceBar = document.getElementById('profileIntelligenceBar');
-              
-              let currentIntelligence = parseInt(intelligence.textContent);
-              let newIntelligence = Math.min(currentIntelligence + statValue, 100);
-              
-              intelligence.textContent = newIntelligence;
-              profileIntelligence.textContent = newIntelligence;
-              intelligenceBar.style.width = newIntelligence + '%';
-              profileIntelligenceBar.style.width = newIntelligence + '%';
-              
-              // 직업 예측 변경
-              if (newIntelligence > 70) {
-                document.getElementById('job').textContent = '네카라쿠배 개발자';
-              } else if (newIntelligence > 60) {
-                document.getElementById('job').textContent = '스타트업 4호 개발자';
-              }
-            } else if (statType === 'strength') {
-              const strength = document.getElementById('strength');
-              const profileStrength = document.getElementById('profileStrength');
-              const strengthBar = document.getElementById('strengthBar');
-              const profileStrengthBar = document.getElementById('profileStrengthBar');
-              
-              let currentStrength = parseInt(strength.textContent);
-              let newStrength = Math.min(currentStrength + statValue, 100);
-              
-              strength.textContent = newStrength;
-              profileStrength.textContent = newStrength;
-              strengthBar.style.width = newStrength + '%';
-              profileStrengthBar.style.width = newStrength + '%';
-            } else if (statType === 'creativity') {
-              const creativity = document.getElementById('creativity');
-              const profileCreativity = document.getElementById('profileCreativity');
-              const creativityBar = document.getElementById('creativityBar');
-              const profileCreativityBar = document.getElementById('profileCreativityBar');
-              
-              let currentCreativity = parseInt(creativity.textContent);
-              let newCreativity = Math.min(currentCreativity + statValue, 100);
-              
-              creativity.textContent = newCreativity;
-              profileCreativity.textContent = newCreativity;
-              creativityBar.style.width = newCreativity + '%';
-              profileCreativityBar.style.width = newCreativity + '%';
-              
-              // 많이 상승한 경우 직업 변경
-              if (newCreativity > 70) {
-                document.getElementById('job').textContent = '방구석 웹툰 작가';
-              }
-            }
-            
-            // 2초 후 버튼 복원
-            setTimeout(() => {
-              this.textContent = price + ' 골드';
-              this.className = 'shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded';
-            }, 2000);
-          } else {
-            // 골드 부족
-            this.textContent = '골드 부족!';
-            this.className = 'shop-item bg-red-600 text-white text-xxs font-bold px-2 py-0.5 rounded';
-            
-            // 2초 후 버튼 복원
-            setTimeout(() => {
-              this.textContent = price + ' 골드';
-              this.className = 'shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded';
-            }, 2000);
-          }
-        });
       });
     });
   </script>
