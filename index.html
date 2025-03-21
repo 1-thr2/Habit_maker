@@ -153,48 +153,50 @@
   </header>
   
   <!-- 슬라이드 컨테이너 -->
-  <main class="pt-16 pb-8 px-4 flex-1 flex flex-col items-center justify-center">
-    <div class="w-full max-w-6xl">
-      <div id="slideContainer" class="bg-white rounded-xl shadow-md overflow-hidden">
-        <!-- 슬라이드 제목 -->
-        <div id="slideTitle" class="bg-blue-600 text-white p-4">
-          <h2 class="text-xl font-bold">목표 달성 캐릭터 앱</h2>
-        </div>
-        
-        <!-- 슬라이드 내용 -->
-        <div id="slideContent" class="p-6 md:p-8">
-          <!-- 슬라이드 내용이 JS에서 동적으로 들어갑니다 -->
-        </div>
-        
-        <!-- 네비게이션 버튼 -->
-        <div class="flex justify-between p-4 border-t border-gray-200">
-          <button id="prevBtn" class="flex items-center text-gray-300 cursor-not-allowed" disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            이전
-          </button>
-          <button id="nextBtn" class="flex items-center text-blue-500 hover:text-blue-700">
-            다음
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
+  <main class="pt-16 pb-8 px-4 flex-1">
+    <div class="flex flex-col md:flex-row md:space-x-6 max-w-6xl mx-auto">
+      <!-- 왼쪽: 슬라이드 -->
+      <div class="w-full md:w-1/2 mb-6 md:mb-0">
+        <div id="slideContainer" class="bg-white rounded-xl shadow-md overflow-hidden">
+          <!-- 슬라이드 제목 -->
+          <div id="slideTitle" class="bg-blue-600 text-white p-4">
+            <h2 class="text-xl font-bold">목표 달성 캐릭터 앱</h2>
+          </div>
+          
+          <!-- 슬라이드 내용 -->
+          <div id="slideContent" class="p-6 md:p-8">
+            <!-- 슬라이드 내용이 JS에서 동적으로 들어갑니다 -->
+          </div>
+          
+          <!-- 네비게이션 버튼 -->
+          <div class="flex justify-between p-4 border-t border-gray-200">
+            <button id="prevBtn" class="flex items-center text-gray-300 cursor-not-allowed" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              이전
+            </button>
+            <button id="nextBtn" class="flex items-center text-blue-500 hover:text-blue-700">
+              다음
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
-  
-  <!-- 모바일 탭 데모 영역 -->
-  <div id="mobileDemo" class="fixed top-24 right-4 z-50 shadow-lg rounded-lg overflow-hidden hidden md:block">
+      
+      <!-- 오른쪽: 앱 미리보기 -->
+      <div class="w-full md:w-1/2 flex justify-center md:justify-start">
+        <div id="mobileDemo" class="shadow-lg rounded-lg overflow-hidden h-[36rem]">
     <div class="bg-white p-2 text-xs font-bold text-center border-b border-gray-200">
       앱 미리보기
     </div>
     <div class="relative w-64 h-96 bg-gray-800">
-      <!-- 앱 화면 -->
+              <!-- 앱 화면 -->
       <div class="bg-white h-full">
         <!-- 상단 네비게이션 -->
         <div class="bg-blue-600 text-white p-2 flex justify-between items-center">
           <div class="text-xs font-bold">목표 달성 or Die</div>
           <div class="flex items-center">
             <div class="mr-2 text-xs bg-yellow-500 text-black px-1 py-0.5 rounded-full text-xs">Lv.<span id="level">3</span></div>
-            <div class="flex items-center text-xs">
+            <div id="goldBtn" class="flex items-center text-xs cursor-pointer bg-blue-700 px-2 py-0.5 rounded-full">
               <span class="mr-1">💰</span>
               <span id="gold">85</span>
             </div>
@@ -202,7 +204,7 @@
         </div>
         
         <!-- 앱 콘텐츠 영역 -->
-        <div class="h-full">
+        <div class="h-full overflow-y-auto">
           <!-- 홈 탭 -->
           <div id="homeTab" class="tab-content active p-2">
             <div class="bg-gray-100 rounded-lg p-2 mb-2">
@@ -220,16 +222,44 @@
                 </div>
               </div>
               
-              <div class="mb-1">
-                <div class="flex justify-between text-xxs mb-0.5">
-                  <span class="flex items-center">
-                    <span class="mr-0.5 text-blue-500">🧠</span>
-                    <span>지능</span>
-                  </span>
-                  <span><span id="intelligence">50</span>/100</span>
+              <div class="space-y-1 mb-2">
+                <div>
+                  <div class="flex justify-between text-xxs mb-0.5">
+                    <span class="flex items-center">
+                      <span class="mr-0.5 text-blue-500">🧠</span>
+                      <span>지능</span>
+                    </span>
+                    <span><span id="intelligence">50</span>/100</span>
+                  </div>
+                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="intelligenceBar" class="h-full bg-blue-500" style="width: 50%"></div>
+                  </div>
                 </div>
-                <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                  <div id="intelligenceBar" class="h-full bg-blue-500" style="width: 50%"></div>
+                
+                <div>
+                  <div class="flex justify-between text-xxs mb-0.5">
+                    <span class="flex items-center">
+                      <span class="mr-0.5 text-green-500">💪</span>
+                      <span>체력</span>
+                    </span>
+                    <span><span id="strength">35</span>/100</span>
+                  </div>
+                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="strengthBar" class="h-full bg-green-500" style="width: 35%"></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div class="flex justify-between text-xxs mb-0.5">
+                    <span class="flex items-center">
+                      <span class="mr-0.5 text-purple-500">💡</span>
+                      <span>창의력</span>
+                    </span>
+                    <span><span id="creativity">42</span>/100</span>
+                  </div>
+                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="creativityBar" class="h-full bg-purple-500" style="width: 42%"></div>
+                  </div>
                 </div>
               </div>
               
@@ -259,11 +289,26 @@
                     <div class="text-xl mr-2">☕</div>
                     <div>
                       <div class="font-bold text-xxs">맥심 커피</div>
-                      <div class="text-xxs text-gray-500">에너지 +5</div>
+                      <div class="text-xxs text-gray-500">지능 +5</div>
                     </div>
                   </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="10">
+                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="10" data-stat="intelligence" data-value="5">
                     10 골드
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <div class="text-xl mr-2">🏋️‍♂️</div>
+                    <div>
+                      <div class="font-bold text-xxs">헬스장 1일 이용권</div>
+                      <div class="text-xxs text-gray-500">체력 +8, 지능 -2</div>
+                    </div>
+                  </div>
+                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="15" data-stat="strength" data-value="8">
+                    15 골드
                   </button>
                 </div>
               </div>
@@ -274,10 +319,10 @@
                     <div class="text-xl mr-2">📱</div>
                     <div>
                       <div class="font-bold text-xxs">중고 아이폰 SE</div>
-                      <div class="text-xxs text-gray-500">지능 +10, 사교성 -5</div>
+                      <div class="text-xxs text-gray-500">지능 +10, 체력 -3</div>
                     </div>
                   </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="50">
+                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="50" data-stat="intelligence" data-value="10">
                     50 골드
                   </button>
                 </div>
@@ -289,11 +334,26 @@
                     <div class="text-xl mr-2">🍕</div>
                     <div>
                       <div class="font-bold text-xxs">도미노 피자</div>
-                      <div class="text-xxs text-gray-500">체력 +8, 건강 -3</div>
+                      <div class="text-xxs text-gray-500">체력 +5, 창의력 +3</div>
                     </div>
                   </div>
-                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="25">
+                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="25" data-stat="strength" data-value="5">
                     25 골드
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <div class="text-xl mr-2">🎨</div>
+                    <div>
+                      <div class="font-bold text-xxs">아이패드 드로잉 앱</div>
+                      <div class="text-xxs text-gray-500">창의력 +12</div>
+                    </div>
+                  </div>
+                  <button class="shop-item bg-blue-600 text-white text-xxs font-bold px-2 py-0.5 rounded" data-price="35" data-stat="creativity" data-value="12">
+                    35 골드
                   </button>
                 </div>
               </div>
@@ -301,7 +361,7 @@
           </div>
           
           <!-- 프로필 탭 -->
-          <div id="profileTab" class="tab-content p-2 hidden">
+          <div id="profileTab" class="tab-content p-2 hidden h-full overflow-y-auto pb-16">
             <div class="bg-blue-50 p-3 rounded-lg text-center mb-3">
               <div class="text-3xl mb-1">👨‍💻</div>
               <div class="text-xs font-bold">레벨 <span id="profileLevel">3</span></div>
@@ -342,23 +402,107 @@
                 <div>
                   <div class="flex justify-between text-xxs mb-0.5">
                     <span>체력:</span>
-                    <span>35/100</span>
+                    <span><span id="profileStrength">35</span>/100</span>
                   </div>
                   <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-green-500" style="width: 35%"></div>
+                    <div id="profileStrengthBar" class="h-full bg-green-500" style="width: 35%"></div>
                   </div>
                 </div>
                 <div>
                   <div class="flex justify-between text-xxs mb-0.5">
                     <span>창의력:</span>
-                    <span>42/100</span>
+                    <span><span id="profileCreativity">42</span>/100</span>
                   </div>
                   <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-purple-500" style="width: 42%"></div>
+                    <div id="profileCreativityBar" class="h-full bg-purple-500" style="width: 42%"></div>
                   </div>
                 </div>
               </div>
             </div>
+            
+            <div class="mt-3 bg-yellow-50 p-2 rounded-lg">
+              <div class="text-xs font-bold mb-2">통계 분석</div>
+              <div class="space-y-2 text-xxs">
+                <div class="bg-white p-2 rounded-lg">
+                  <div class="font-bold mb-1">지난 주 vs 이번 주</div>
+                  <div>인증률 85% → 95% (+10%)</div>
+                  <div>평균 능력치 상승 4.3 → 5.8</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg">
+                  <div class="font-bold mb-1">동일 목표 유저 비교</div>
+                  <div>상위 15% (최근 능력치 상승률)</div>
+                  <div>상위 25% (누적 인증 횟수)</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-3 bg-blue-50 p-2 rounded-lg">
+              <div class="text-xs font-bold mb-2 text-center">120일 후 직업 예측</div>
+              <div class="bg-white p-2 rounded-lg text-center text-sm">
+                네카라쿠배 개발자
+              </div>
+              <div class="text-xxs text-center mt-2 text-gray-600">
+                현재 추세 기준: 지능 74%, 체력 52%, 창의력 68%
+              </div>
+            </div>
+            
+            <div class="mt-3 bg-green-50 p-2 rounded-lg">
+              <div class="text-xs font-bold mb-2 text-center">관련 직업 분석</div>
+              <div class="text-xxs space-y-1">
+                <div class="bg-white p-2 rounded-lg flex justify-between">
+                  <span>네카라쿠배 개발자</span>
+                  <span class="text-green-500">85%</span>
+                </div>
+                <div class="bg-white p-2 rounded-lg flex justify-between">
+                  <span>스타트업 4호 개발자</span>
+                  <span class="text-yellow-500">62%</span>
+                </div>
+                <div class="bg-white p-2 rounded-lg flex justify-between">
+                  <span>프리랜서 개발자</span>
+                  <span class="text-blue-500">48%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 카메라 화면 -->
+          <div id="cameraTab" class="tab-content p-2 hidden">
+            <div class="text-xs font-bold mb-2">인증 사진 촬영</div>
+            <div class="relative bg-black rounded-lg mb-2">
+              <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg overflow-hidden">
+                <div id="cameraViewfinder" class="text-6xl">📷</div>
+              </div>
+              <button id="captureBtn" class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white flex items-center justify-center">
+                <div class="w-10 h-10 rounded-full bg-red-500"></div>
+              </button>
+            </div>
+            <div class="text-xxs text-center text-gray-500 mb-2">
+              오늘의 코딩 공부 인증 사진을 찍어주세요
+            </div>
+            <button id="cancelCameraBtn" class="w-full bg-gray-500 text-white text-xxs font-bold py-1 rounded-lg">
+              취소하기
+            </button>
+          </div>
+          
+          <!-- 인증 완료 화면 -->
+          <div id="checkInCompleteTab" class="tab-content p-2 hidden">
+            <div class="text-xs font-bold mb-2 text-center">인증 완료!</div>
+            <div class="bg-green-50 p-3 rounded-lg mb-2">
+              <div id="motivationMessage" class="text-center text-sm text-green-700 font-medium mb-2">
+                좋아요! 오늘도 한 걸음 더 성장했어요!
+              </div>
+              <div class="flex items-center justify-center text-3xl mb-2">🎉</div>
+              <div class="flex justify-center items-center text-center text-xs bg-white p-2 rounded-lg">
+                <span class="mr-2">보상:</span>
+                <span class="flex items-center text-yellow-500 font-bold">
+                  <span class="mr-1">💰</span> 
+                  <span>10 골드</span>
+                </span>
+              </div>
+            </div>
+            <button id="checkInDoneBtn" class="w-full bg-blue-600 text-white text-xs font-bold py-1 rounded-lg">
+              확인
+            </button>
           </div>
           
           <!-- 미니게임 화면 -->
@@ -1360,51 +1504,77 @@
       shopTabBtn.addEventListener('click', () => switchTab('shopTab'));
       profileTabBtn.addEventListener('click', () => switchTab('profileTab'));
       
+      // 골드 버튼 클릭 시 상점으로 이동
+      document.getElementById('goldBtn').addEventListener('click', () => {
+        switchTab('shopTab');
+      });
+      
       // 인증하기 버튼 기능
       checkInBtn.addEventListener('click', function() {
-        // 버튼 상태 변경
-        this.disabled = true;
-        this.textContent = '인증 완료!';
+        // 카메라 화면으로 전환
+        homeTab.classList.add('hidden');
+        homeTab.classList.remove('active');
+        document.getElementById('cameraTab').classList.remove('hidden');
+        document.getElementById('cameraTab').classList.add('active');
+      });
+      
+      // 카메라 취소 버튼
+      document.getElementById('cancelCameraBtn').addEventListener('click', () => {
+        // 홈 화면으로 돌아가기
+        document.getElementById('cameraTab').classList.add('hidden');
+        document.getElementById('cameraTab').classList.remove('active');
+        homeTab.classList.remove('hidden');
+        homeTab.classList.add('active');
+      });
+      
+      // 촬영 버튼
+      document.getElementById('captureBtn').addEventListener('click', function() {
+        // 카메라 애니메이션
+        const viewfinder = document.getElementById('cameraViewfinder');
+        viewfinder.textContent = '📸';
         
-        // 캐릭터 애니메이션
-        const character = document.getElementById('character');
-        character.classList.add('animated-pulse');
+        // 플래시 효과
+        document.getElementById('cameraTab').classList.add('bg-white');
         
-        // 지능 증가
-        const intelligence = document.getElementById('intelligence');
-        const profileIntelligence = document.getElementById('profileIntelligence');
-        const intelligenceBar = document.getElementById('intelligenceBar');
-        const profileIntelligenceBar = document.getElementById('profileIntelligenceBar');
-        
-        let currentIntelligence = parseInt(intelligence.textContent);
-        let newIntelligence = Math.min(currentIntelligence + 5, 100);
-        
-        intelligence.textContent = newIntelligence;
-        profileIntelligence.textContent = newIntelligence;
-        intelligenceBar.style.width = newIntelligence + '%';
-        profileIntelligenceBar.style.width = newIntelligence + '%';
-        
-        // 골드 증가
-        const gold = document.getElementById('gold');
-        gold.textContent = parseInt(gold.textContent) + 10;
-        
-        // 생존일 증가
-        const days = document.getElementById('days');
-        const profileDays = document.getElementById('profileDays');
-        let currentDays = parseInt(days.textContent);
-        days.textContent = currentDays + 1;
-        profileDays.textContent = currentDays + 1;
-        
-        // 애니메이션 종료
+        // 인증 완료 화면으로 전환
         setTimeout(() => {
-          character.classList.remove('animated-pulse');
+          document.getElementById('cameraTab').classList.remove('bg-white');
+          document.getElementById('cameraTab').classList.add('hidden');
+          document.getElementById('cameraTab').classList.remove('active');
+          document.getElementById('checkInCompleteTab').classList.remove('hidden');
+          document.getElementById('checkInCompleteTab').classList.add('active');
           
-          // 버튼 복원
-          setTimeout(() => {
-            this.disabled = false;
-            this.innerHTML = '<span class="mr-1">📸</span><span>오늘의 인증하기</span>';
-          }, 1000);
-        }, 1000);
+          // 랜덤 동기부여 메시지
+          const messages = [
+            "좋아요! 오늘도 한 걸음 더 성장했어요!",
+            "습관은 인생을 바꾸는 마법이에요!",
+            "인증 성공! 성실함은 인생 최고의 제갑부품!",
+            "오늘 노력이 평생 인턴을 막는다!",
+            "퇴근 후 코딩도 당신의 내일을 바꿉니다!"
+          ];
+          document.getElementById('motivationMessage').textContent = 
+            messages[Math.floor(Math.random() * messages.length)];
+          
+          // 골드 증가
+          const gold = document.getElementById('gold');
+          gold.textContent = parseInt(gold.textContent) + 10;
+          
+          // 생존일 증가
+          const days = document.getElementById('days');
+          const profileDays = document.getElementById('profileDays');
+          let currentDays = parseInt(days.textContent);
+          days.textContent = currentDays + 1;
+          profileDays.textContent = currentDays + 1;
+        }, 500);
+      });
+      
+      // 인증 완료 확인 버튼
+      document.getElementById('checkInDoneBtn').addEventListener('click', () => {
+        // 홈 화면으로 돌아가기
+        document.getElementById('checkInCompleteTab').classList.add('hidden');
+        document.getElementById('checkInCompleteTab').classList.remove('active');
+        homeTab.classList.remove('hidden');
+        homeTab.classList.add('active');
       });
       
       // 광고 보기 버튼 기능
@@ -1463,7 +1633,9 @@
       // 상점 아이템 구매 버튼 이벤트
       shopItems.forEach(item => {
         item.addEventListener('click', function() {
-          const price = parseInt(this.textContent);
+          const price = parseInt(this.getAttribute('data-price'));
+          const statType = this.getAttribute('data-stat');
+          const statValue = parseInt(this.getAttribute('data-value'));
           const gold = document.getElementById('gold');
           const currentGold = parseInt(gold.textContent);
           
@@ -1473,20 +1645,58 @@
             this.textContent = '구매 완료!';
             this.className = 'shop-item bg-green-600 text-white text-xxs font-bold px-2 py-0.5 rounded';
             
-            // 지능 증가 (아이폰 SE 구매 시)
-            if (price === 50) {
+            // 능력치 증가
+            if (statType === 'intelligence') {
               const intelligence = document.getElementById('intelligence');
               const profileIntelligence = document.getElementById('profileIntelligence');
               const intelligenceBar = document.getElementById('intelligenceBar');
               const profileIntelligenceBar = document.getElementById('profileIntelligenceBar');
               
               let currentIntelligence = parseInt(intelligence.textContent);
-              let newIntelligence = Math.min(currentIntelligence + 10, 100);
+              let newIntelligence = Math.min(currentIntelligence + statValue, 100);
               
               intelligence.textContent = newIntelligence;
               profileIntelligence.textContent = newIntelligence;
               intelligenceBar.style.width = newIntelligence + '%';
               profileIntelligenceBar.style.width = newIntelligence + '%';
+              
+              // 직업 예측 변경
+              if (newIntelligence > 70) {
+                document.getElementById('job').textContent = '네카라쿠배 개발자';
+              } else if (newIntelligence > 60) {
+                document.getElementById('job').textContent = '스타트업 4호 개발자';
+              }
+            } else if (statType === 'strength') {
+              const strength = document.getElementById('strength');
+              const profileStrength = document.getElementById('profileStrength');
+              const strengthBar = document.getElementById('strengthBar');
+              const profileStrengthBar = document.getElementById('profileStrengthBar');
+              
+              let currentStrength = parseInt(strength.textContent);
+              let newStrength = Math.min(currentStrength + statValue, 100);
+              
+              strength.textContent = newStrength;
+              profileStrength.textContent = newStrength;
+              strengthBar.style.width = newStrength + '%';
+              profileStrengthBar.style.width = newStrength + '%';
+            } else if (statType === 'creativity') {
+              const creativity = document.getElementById('creativity');
+              const profileCreativity = document.getElementById('profileCreativity');
+              const creativityBar = document.getElementById('creativityBar');
+              const profileCreativityBar = document.getElementById('profileCreativityBar');
+              
+              let currentCreativity = parseInt(creativity.textContent);
+              let newCreativity = Math.min(currentCreativity + statValue, 100);
+              
+              creativity.textContent = newCreativity;
+              profileCreativity.textContent = newCreativity;
+              creativityBar.style.width = newCreativity + '%';
+              profileCreativityBar.style.width = newCreativity + '%';
+              
+              // 많이 상승한 경우 직업 변경
+              if (newCreativity > 70) {
+                document.getElementById('job').textContent = '방구석 웹툰 작가';
+              }
             }
             
             // 2초 후 버튼 복원
