@@ -284,70 +284,28 @@
               </div>
             </div>
             
-            <div id="actionButtons">
-              <button id="checkInButton" class="w-full bg-blue-600 text-white font-bold py-1 text-xs rounded-lg mb-1 flex items-center justify-center">
-                <span class="mr-1">📸</span>
-                <span>오늘의 인증하기</span>
-              </button>
-              
-              <button id="adButton" class="w-full bg-yellow-500 text-white font-bold py-1 text-xs rounded-lg flex items-center justify-center">
-                <span class="mr-1">🎬</span>
-                <span>광고보고 골드 받기</span>
-              </button>
-            </div>
+            <button id="checkInButton" class="w-full bg-blue-600 text-white font-bold py-1 text-xs rounded-lg mb-1 flex items-center justify-center">
+              <span class="mr-1">📸</span>
+              <span>오늘의 인증하기</span>
+            </button>
             
-            <!-- 광고 시청 후 미니게임 선택 화면 -->
-            <div id="miniGameSelect" class="hidden">
-              <div class="text-xs font-bold mb-1 text-center">보상 선택</div>
-              <div class="flex justify-between mb-2">
-                <button id="confirmReward" class="bg-green-500 text-white text-xxs font-bold px-2 py-1 rounded flex-1 mr-1 flex items-center justify-center">
-                  <span class="mr-1">💰</span>
-                  <span>3골드 확정</span>
-                </button>
-                <button id="playGame" class="bg-blue-500 text-white text-xxs font-bold px-2 py-1 rounded flex-1 ml-1 flex items-center justify-center">
-                  <span class="mr-1">🎮</span>
-                  <span>미니게임 도전</span>
-                </button>
-              </div>
-            </div>
+            <button id="adButton" class="w-full bg-yellow-500 text-white font-bold py-1 text-xs rounded-lg flex items-center justify-center">
+              <span class="mr-1">🎬</span>
+              <span>광고보고 골드 받기</span>
+            </button>
             
-            <!-- 가위바위보 게임 화면 -->
-            <div id="rpsGame" class="hidden">
-              <div class="text-xs font-bold mb-1 text-center">가위바위보 게임</div>
-              <div class="flex justify-between mb-2">
-                <button class="rps-choice bg-blue-100 text-blue-800 text-lg p-1 rounded w-12 h-12 flex items-center justify-center">✌️</button>
-                <button class="rps-choice bg-blue-100 text-blue-800 text-lg p-1 rounded w-12 h-12 flex items-center justify-center">✊</button>
-                <button class="rps-choice bg-blue-100 text-blue-800 text-lg p-1 rounded w-12 h-12 flex items-center justify-center">🖐️</button>
-              </div>
-              
-              <div id="rpsResult" class="hidden">
+            <!-- 가위바위보 게임 화면 (기본적으로 숨겨져 있음) -->
+            <div id="rpsGame" class="hidden mt-2">
+              <div class="bg-gray-100 p-2 rounded-lg">
+                <div class="text-xs font-bold mb-2 text-center">가위바위보 게임</div>
                 <div class="flex justify-between mb-2">
-                  <div class="text-center">
-                    <div class="text-xxs mb-1">나</div>
-                    <div class="text-2xl" id="playerChoice">✊</div>
-                  </div>
-                  <div class="flex items-center text-lg font-bold text-red-500">VS</div>
-                  <div class="text-center">
-                    <div class="text-xxs mb-1">컴퓨터</div>
-                    <div class="text-2xl" id="computerChoice">✌️</div>
-                  </div>
+                  <button class="rps-choice bg-blue-100 text-3xl p-1 rounded-lg w-12 h-12 flex items-center justify-center">✌️</button>
+                  <button class="rps-choice bg-blue-100 text-3xl p-1 rounded-lg w-12 h-12 flex items-center justify-center">✊</button>
+                  <button class="rps-choice bg-blue-100 text-3xl p-1 rounded-lg w-12 h-12 flex items-center justify-center">🖐️</button>
                 </div>
-                
-                <div id="winResult" class="bg-green-100 text-green-600 text-center p-1 rounded-lg mb-1 text-xs font-bold hidden">
-                  승리! 8골드 획득!
+                <div id="gameResult" class="text-center text-xs font-bold hidden">
+                  이길 시 8골드 획득! 도전하세요!
                 </div>
-                <div id="loseResult" class="bg-red-100 text-red-600 text-center p-1 rounded-lg mb-1 text-xs font-bold hidden">
-                  패배했습니다!
-                </div>
-                <div id="drawResult" class="bg-gray-100 text-gray-600 text-center p-1 rounded-lg mb-1 text-xs font-bold hidden">
-                  무승부! 다시 도전!
-                </div>
-                
-                <div class="text-xxs text-center text-gray-500 mb-1">
-                  진정한 승부사는 연속 패배도 두렵지 않다... 라고 합니다
-                </div>
-                
-                <button id="rpsPlayAgain" class="w-full bg-blue-500 text-white text-xxs font-bold py-1 rounded-lg">다시 도전하기</button>
               </div>
             </div>
           </div>
@@ -405,47 +363,66 @@
           
           <!-- 프로필 화면 -->
           <div id="profileTab" class="tab-content hidden">
-            <div class="text-xs font-bold mb-2">프로필</div>
-            <div class="text-center mb-3">
+            <div class="bg-blue-50 p-3 rounded-lg text-center mb-3">
               <div class="text-3xl mb-1" id="profileEmoji">👨‍💻</div>
               <div class="text-xs font-bold">레벨 <span id="profileLevel">3</span></div>
+              <div class="text-xxs text-gray-500 mt-1">목표 달성 현황</div>
             </div>
             
-            <div class="space-y-2 text-xxs">
-              <div class="flex justify-between">
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between bg-white p-2 rounded-lg">
                 <span>목표 시작일:</span>
                 <span>2025-03-14</span>
               </div>
-              <div class="flex justify-between">
+              <div class="flex justify-between bg-white p-2 rounded-lg">
                 <span>인증 성공:</span>
-                <span>87회</span>
+                <span class="text-green-500 font-bold">87회</span>
               </div>
-              <div class="flex justify-between">
+              <div class="flex justify-between bg-white p-2 rounded-lg">
                 <span>인증 실패:</span>
-                <span>3회</span>
+                <span class="text-red-500 font-bold">3회</span>
               </div>
-              <div class="flex justify-between">
+              <div class="flex justify-between bg-white p-2 rounded-lg">
                 <span>연속 인증:</span>
-                <span><span id="profileStreak">7</span>일</span>
+                <span class="text-blue-500 font-bold"><span id="profileStreak">7</span>일</span>
               </div>
             </div>
             
-            <div class="mt-3 bg-blue-50 p-2 rounded-lg">
-              <div class="text-xxs font-bold mb-1">현재 능력치</div>
-              <div class="space-y-1">
-                <div class="flex justify-between text-xxs">
-                  <span>지능:</span>
-                  <span><span id="profileIntelligence">50</span>/100</span>
+            <div class="mt-3 bg-gray-100 p-2 rounded-lg">
+              <div class="text-xs font-bold mb-2">현재 능력치</div>
+              <div class="space-y-2">
+                <div>
+                  <div class="flex justify-between text-xxs mb-0.5">
+                    <span>지능:</span>
+                    <span><span id="profileIntelligence">50</span>/100</span>
+                  </div>
+                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500" style="width: 50%"></div>
+                  </div>
                 </div>
-                <div class="flex justify-between text-xxs">
-                  <span>체력:</span>
-                  <span>35/100</span>
+                <div>
+                  <div class="flex justify-between text-xxs mb-0.5">
+                    <span>체력:</span>
+                    <span>35/100</span>
+                  </div>
+                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-500" style="width: 35%"></div>
+                  </div>
                 </div>
-                <div class="flex justify-between text-xxs">
-                  <span>창의력:</span>
-                  <span>42/100</span>
+                <div>
+                  <div class="flex justify-between text-xxs mb-0.5">
+                    <span>창의력:</span>
+                    <span>42/100</span>
+                  </div>
+                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-purple-500" style="width: 42%"></div>
+                  </div>
                 </div>
               </div>
+            </div>
+            
+            <div class="mt-3 bg-yellow-50 p-2 rounded-lg text-xxs text-center">
+              120일 후 최종 직업 예측: <strong>네카라쿠배 개발자</strong>
             </div>
           </div>
         </div>
@@ -1381,6 +1358,10 @@
             btn.classList.remove('text-gray-400');
             btn.classList.add('text-blue-400');
             
+            // 가위바위보 게임 숨기기
+            document.getElementById('rpsGame').classList.add('hidden');
+            document.getElementById('gameResult').classList.add('hidden');
+            
             // 모든 탭 콘텐츠 숨기기
             tabContents.forEach(content => {
               content.classList.remove('active');
@@ -1400,8 +1381,6 @@
         
         // 인증하기 버튼 기능
         const checkInButton = document.getElementById('checkInButton');
-        const adButton = document.getElementById('adButton');
-        
         checkInButton.addEventListener('click', () => {
           // 인증 버튼 클릭 애니메이션
           const characterEmoji = document.getElementById('characterEmoji');
@@ -1437,20 +1416,6 @@
             notificationCount.textContent = currentCount - 1;
           }
           
-          // 레벨업 기회
-          if (Math.random() > 0.7) {
-            const level = document.getElementById('previewLevel');
-            const profileLevel = document.getElementById('profileLevel');
-            const currentLevel = parseInt(level.textContent);
-            level.textContent = currentLevel + 1;
-            profileLevel.textContent = currentLevel + 1;
-            
-            // 레벨업 시 직업 예측 변경
-            const jobs = ['스타트업 4호 개발자', '네카라쿠배 개발자', '인공지능 전문가', '블록체인 개발자'];
-            const predictedJob = document.getElementById('predictedJob');
-            predictedJob.textContent = jobs[Math.floor(Math.random() * jobs.length)];
-          }
-          
           // 애니메이션 클래스 제거
           setTimeout(() => {
             characterEmoji.classList.remove('checkin-animation');
@@ -1463,122 +1428,71 @@
         });
         
         // 광고보기 버튼 기능
-        const miniGameSelect = document.getElementById('miniGameSelect');
-        const actionButtons = document.getElementById('actionButtons');
+        const adButton = document.getElementById('adButton');
         const rpsGame = document.getElementById('rpsGame');
         
         adButton.addEventListener('click', () => {
-          // 광고 로딩 애니메이션
-          adButton.classList.add('ad-loading');
+          // 광고 상태 변경
           adButton.textContent = '광고 로딩 중...';
+          adButton.disabled = true;
           
-          // 광고 시청 시뮬레이션 (3초)
+          // 광고 재생 시뮬레이션 (2초)
           setTimeout(() => {
-            adButton.classList.remove('ad-loading');
-            adButton.textContent = '광고 시청 완료!';
+            adButton.textContent = '광고 재생 중...';
             
-            // 광고 시청 완료 후 미니게임 선택 화면으로
+            // 광고 완료 후 게임 표시 (3초)
             setTimeout(() => {
-              actionButtons.classList.add('hidden');
-              miniGameSelect.classList.remove('hidden');
-            }, 1000);
-          }, 3000);
-        });
-        
-        // 확정 보상 버튼
-        const confirmReward = document.getElementById('confirmReward');
-        confirmReward.addEventListener('click', () => {
-          // 3골드 확정 지급
-          const goldElement = document.getElementById('previewGold');
-          const currentGold = parseInt(goldElement.textContent);
-          goldElement.textContent = currentGold + 3;
-          
-          // 미니게임 선택화면 닫고 원래 버튼 표시
-          miniGameSelect.classList.add('hidden');
-          actionButtons.classList.remove('hidden');
-        });
-        
-        // 미니게임 도전 버튼
-        const playGame = document.getElementById('playGame');
-        playGame.addEventListener('click', () => {
-          // 미니게임 선택화면 숨기고 가위바위보 게임 표시
-          miniGameSelect.classList.add('hidden');
-          rpsGame.classList.remove('hidden');
-          document.getElementById('rpsResult').classList.add('hidden');
+              adButton.textContent = '광고 완료!';
+              
+              setTimeout(() => {
+                // 가위바위보 게임 표시
+                rpsGame.classList.remove('hidden');
+                document.getElementById('gameResult').classList.remove('hidden');
+                
+                // 버튼 원래대로
+                adButton.innerHTML = '<span class="mr-1">🎬</span><span>광고보고 골드 받기</span>';
+                adButton.disabled = false;
+              }, 1000);
+            }, 2000);
+          }, 1000);
         });
         
         // 가위바위보 게임 기능
         const rpsChoices = document.querySelectorAll('.rps-choice');
-        const rpsResult = document.getElementById('rpsResult');
-        const playerChoice = document.getElementById('playerChoice');
-        const computerChoice = document.getElementById('computerChoice');
-        const winResult = document.getElementById('winResult');
-        const loseResult = document.getElementById('loseResult');
-        const drawResult = document.getElementById('drawResult');
+        const gameResult = document.getElementById('gameResult');
         
         rpsChoices.forEach(choice => {
           choice.addEventListener('click', () => {
-            // 플레이어 선택과 컴퓨터 선택 표시
-            const playerEmoji = choice.textContent;
-            playerChoice.textContent = playerEmoji;
+            // 랜덤 결과 (70% 확률로 이기기)
+            const win = Math.random() < 0.7;
             
-            // 컴퓨터 선택 (랜덤)
-            const choices = ['✌️', '✊', '🖐️'];
-            const computerEmoji = choices[Math.floor(Math.random() * 3)];
-            computerChoice.textContent = computerEmoji;
-            
-            // 결과 확인 (승리, 패배, 무승부)
-            let isWin = false;
-            let isDraw = false;
-            
-            if (playerEmoji === computerEmoji) {
-              isDraw = true;
-            } else if (
-              (playerEmoji === '✌️' && computerEmoji === '🖐️') ||
-              (playerEmoji === '✊' && computerEmoji === '✌️') ||
-              (playerEmoji === '🖐️' && computerEmoji === '✊')
-            ) {
-              isWin = true;
-            }
-            
-            // 결과 화면 표시
-            rpsResult.classList.remove('hidden');
-            winResult.classList.add('hidden');
-            loseResult.classList.add('hidden');
-            drawResult.classList.add('hidden');
-            
-            if (isDraw) {
-              drawResult.classList.remove('hidden');
-            } else if (isWin) {
-              winResult.classList.remove('hidden');
-              // 승리 시 골드 추가
+            if (win) {
+              // 승리
+              gameResult.textContent = '승리! 8골드 획득!';
+              gameResult.className = 'text-center text-xs font-bold bg-green-100 text-green-600 p-1 rounded-lg mt-2';
+              
+              // 골드 증가
               const goldElement = document.getElementById('previewGold');
               const currentGold = parseInt(goldElement.textContent);
               goldElement.textContent = currentGold + 8;
+              
               // 승리 애니메이션
               goldElement.classList.add('win-animation');
               setTimeout(() => {
                 goldElement.classList.remove('win-animation');
-              }, 500);
+              }, 1000);
             } else {
-              loseResult.classList.remove('hidden');
+              // 패배
+              gameResult.textContent = '패배했습니다!';
+              gameResult.className = 'text-center text-xs font-bold bg-red-100 text-red-600 p-1 rounded-lg mt-2';
             }
+            
+            // 2초 후 결과 초기화
+            setTimeout(() => {
+              gameResult.textContent = '이길 시 8골드 획득! 도전하세요!';
+              gameResult.className = 'text-center text-xs font-bold';
+            }, 2000);
           });
-        });
-        
-        // 가위바위보 다시하기 버튼
-        const rpsPlayAgain = document.getElementById('rpsPlayAgain');
-        rpsPlayAgain.addEventListener('click', () => {
-          // 결과 숨기고 원래 버튼들 표시
-          rpsResult.classList.add('hidden');
-        });
-        
-        // 게임에서 홈으로 돌아가기
-        document.getElementById('homeTabBtn').addEventListener('click', () => {
-          // 모든 게임 화면 숨기기
-          miniGameSelect.classList.add('hidden');
-          rpsGame.classList.add('hidden');
-          actionButtons.classList.remove('hidden');
         });
         
         // 상점 아이템 구매 기능
@@ -1628,6 +1542,7 @@
             }
           });
         });
+      };
       };
       };
       
