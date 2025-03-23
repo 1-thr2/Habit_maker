@@ -906,18 +906,18 @@
       
       <!-- 오디오 요소들 -->
       <audio id="bgMusic" loop preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2023/02/25/audio_b826097a27.mp3?filename=calm-happy-acoustic-guitar-background-music-for-videos-5718.mp3" type="audio/mpeg">
-        <!-- 재미있는 8비트 음악 - 이미 호스팅된 URL 사용 -->
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        <!-- 대체 배경 음악 - 더 일반적인 호스팅 사이트 사용 -->
       </audio>
       
       <audio id="appleSound" preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_b0b0b7e0b8.mp3?filename=interface-124464.mp3" type="audio/mpeg">
-        <!-- 팝 사운드 효과 - 이미 호스팅된 URL 사용 -->
+        <source src="https://www.soundjay.com/button/sounds/button-09.mp3" type="audio/mpeg">
+        <!-- 대체 효과음 -->
       </audio>
       
       <audio id="gameOverSound" preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=wah-wah-sad-trombone-6347.mp3" type="audio/mpeg">
-        <!-- 게임 오버 사운드 - 이미 호스팅된 URL 사용 -->
+        <source src="https://www.soundjay.com/misc/sounds/fail-buzzer-01.mp3" type="audio/mpeg">
+        <!-- 대체 게임 오버 사운드 -->
       </audio>
       
       <!-- 광고 시청 화면 -->
@@ -1673,7 +1673,7 @@
         basketElement.style.cursor = 'grab';
       }
       
-      // 게임 시작 버튼
+      <!-- 게임 시작 버튼 -->
       document.getElementById('startGameBtn').addEventListener('click', function() {
         // 게임 준비 오버레이 숨기기
         document.getElementById('gameOverlay').classList.add('hidden');
@@ -1681,19 +1681,31 @@
         // 게임 활성화
         appleGameActive = true;
         
-        // 배경 음악 재생
-        if (!isMuted) {
-          bgMusic.volume = 0.5; // 배경 음악 볼륨 설정
-          bgMusic.play();
+        // 배경 음악 재생 (사용자 상호작용으로 재생)
+        try {
+          if (!isMuted) {
+            bgMusic.volume = 0.5;
+            let playPromise = bgMusic.play();
+            
+            // 브라우저 호환성을 위한 처리
+            if (playPromise !== undefined) {
+              playPromise.catch(error => {
+                console.log("음악 재생 실패:", error);
+                // 실패해도 게임은 계속 진행
+              });
+            }
+          }
+        } catch (e) {
+          console.log("오디오 재생 오류:", e);
         }
         
         // 타이머 시작
         startGameTimer();
         
-        // 아이템 생성 시작 (더 빠른 간격으로)
+        // 아이템 생성 시작
         gameInterval = setInterval(generateFallingItem, 600); // 0.6초마다 아이템 생성
         
-        // 충돌 감지 업데이트 시작 (더 빠르게)
+        // 충돌 감지 업데이트 시작
         collisionInterval = setInterval(checkCollisions, 20);
       });
       
@@ -1711,9 +1723,13 @@
             // 성공 효과음
             if (!isMuted) {
               bgMusic.pause();
-              const successSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_3b2702f147.mp3?filename=success-1-6297.mp3');
-              successSound.volume = 0.7;
-              successSound.play();
+              try {
+                const successSound = new Audio('https://www.soundjay.com/buttons/sounds/button-25.mp3');
+                successSound.volume = 0.7;
+                successSound.play().catch(e => console.log("성공 효과음 오류:", e));
+              } catch (e) {
+                console.log("성공 효과음 오류:", e);
+              }
             }
             
             endGame();
@@ -1791,9 +1807,17 @@
               
               // 사과 획득 효과음 재생
               if (!isMuted) {
-                appleSound.currentTime = 0; // 효과음 처음으로 되감기
-                appleSound.volume = 0.7;
-                appleSound.play();
+                try {
+                  appleSound.currentTime = 0;
+                  appleSound.volume = 0.7;
+                  let playPromise = appleSound.play();
+                  
+                  if (playPromise !== undefined) {
+                    playPromise.catch(e => console.log("효과음 재생 실패:", e));
+                  }
+                } catch (e) {
+                  console.log("효과음 오류:", e);
+                }
               }
               
               // 점수 증가 애니메이션
@@ -1819,9 +1843,13 @@
                 bgMusic.pause();
                 
                 // 게임오버 효과음 재생
-                gameOverSound.currentTime = 0;
-                gameOverSound.volume = 0.8;
-                gameOverSound.play();
+                try {
+                  gameOverSound.currentTime = 0;
+                  gameOverSound.volume = 0.8;
+                  gameOverSound.play().catch(e => console.log("게임오버 효과음 재생 실패:", e));
+                } catch (e) {
+                  console.log("게임오버 효과음 오류:", e);
+                }
               }
               
               // 벌레 사라지는 효과 (즉시 더 투명하게 시작)
