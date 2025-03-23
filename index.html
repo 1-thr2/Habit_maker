@@ -957,7 +957,7 @@
     let audioContext;
     let isMuted = false;
     
-    // beep 함수 - 간단한 효과음 재생
+    // beep 함수 정의 - 이 함수가 누락되어 오류가 발생하였음
     function beep(duration, frequency, volume) {
       if (isMuted) return;
       try {
@@ -1021,7 +1021,7 @@
       setTimeout(() => playTone(784, 300, 0.3), 200); // G5
     }
   </script>
-  
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       // 탭 전환 관련 변수
@@ -1998,3 +1998,6 @@
         });
       });
     });
+  </script>
+</body>
+</html>
