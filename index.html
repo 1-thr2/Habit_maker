@@ -823,7 +823,7 @@
         <div class="text-lg font-bold mb-3 text-center">사과 게임</div>
         <div class="bg-red-50 p-4 rounded-lg shadow">
           <div class="text-center text-sm mb-3">
-            사과를 받고 벌레는 피하세요! 최대 50골드!
+            사과를 받고 벌레는 피하세요! 벌레 먹으면 즉시 게임 오버!
           </div>
           
           <div class="relative h-60 bg-blue-50 rounded-lg mb-4 overflow-hidden border-2 border-blue-100">
@@ -836,10 +836,11 @@
               30초
             </div>
             
-            <div id="gameOverlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div id="gameOverlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <div class="bg-white p-4 rounded-lg text-center">
                 <div class="text-xl font-bold mb-2">준비 완료!</div>
-                <div class="text-sm mb-3">사과를 받고 벌레는 피하세요</div>
+                <div class="text-sm mb-2">사과를 받고 벌레는 완전히 피하세요!</div>
+                <div class="text-xs text-red-600 font-bold mb-2">벌레 하나라도 먹으면 게임 오버!</div>
                 <div class="text-xs text-gray-500 mb-2">바구니를 터치하여 좌우로 움직일 수 있습니다</div>
                 <button id="startGameBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
                   게임 시작!
@@ -848,14 +849,10 @@
             </div>
           </div>
           
-          <div class="grid grid-cols-3 gap-2 mb-4">
+          <div class="grid grid-cols-2 gap-2 mb-4">
             <div class="bg-white p-2 rounded-lg shadow text-center">
               <div class="text-xs text-gray-500">사과 점수</div>
               <div class="font-bold text-base text-red-500"><span id="appleScore">0</span>개</div>
-            </div>
-            <div class="bg-white p-2 rounded-lg shadow text-center">
-              <div class="text-xs text-gray-500">벌레 감점</div>
-              <div class="font-bold text-base text-green-700">-<span id="bugPenalty">0</span>개</div>
             </div>
             <div class="bg-white p-2 rounded-lg shadow text-center">
               <div class="text-xs text-gray-500">골드</div>
@@ -1505,10 +1502,13 @@
         
         // UI 초기화
         document.getElementById('appleScore').textContent = appleScore;
-        document.getElementById('bugPenalty').textContent = bugPenalty;
         document.getElementById('appleGold').textContent = appleGold;
         document.getElementById('gameTimer').textContent = `${gameTimeLeft}초`;
         document.getElementById('appleGameResult').classList.add('hidden');
+        
+        // 게임 오버 오버레이 제거
+        const existingOverlays = gameArea.querySelectorAll('.game-over-animation');
+        existingOverlays.forEach(overlay => overlay.remove());
         
         // 게임 요소 초기화
         const items = document.querySelectorAll('.falling-item');
@@ -1718,55 +1718,80 @@
               }, 100); // 더 빠르게 제거
               
             } else {
-              // 벌레 감점
-              bugPenalty++;
-              document.getElementById('bugPenalty').textContent = bugPenalty;
-              
-              // 감점 애니메이션
-              const penaltyElement = document.getElementById('bugPenalty');
-              penaltyElement.classList.add('penalty-shake');
-              setTimeout(() => {
-                penaltyElement.classList.remove('penalty-shake');
-              }, 300);
-              
-              // 바구니 흔들림 애니메이션
-              basketElement.classList.add('shake');
-              setTimeout(() => {
-                basketElement.classList.remove('shake');
-              }, 300);
+              // 벌레 먹음 - 게임 즉시 종료!
               
               // 벌레 사라지는 효과 (즉시 더 투명하게 시작)
               item.style.opacity = "0";
               item.style.transform = "scale(0.5)";
+              
+              // 바구니 흔들림 애니메이션
+              basketElement.classList.add('shake');
+              
+              // 게임 오버 효과
+              showGameOverEffect();
+              
+              // 약간의 지연 후 게임 종료 (효과를 볼 수 있도록)
               setTimeout(() => {
-                item.remove();
-              }, 100); // 더 빠르게 제거
+                endGame(true); // true = 벌레에 의한 게임 오버
+              }, 500);
             }
           }
         });
       }
       
-      function endGame() {
+      // 게임 오버 효과
+      function showGameOverEffect() {
+        // 게임 활성화 상태 비활성화
         appleGameActive = false;
         
-        // 골드 계산 (사과 1개당 3골드, 벌레 1개당 -2골드)
-        const totalScore = Math.max(0, appleScore - bugPenalty);
-        appleGold = totalScore * 3;
+        // 게임 영역에 붉은 오버레이 추가
+        const gameOverlay = document.createElement('div');
+        gameOverlay.className = 'absolute inset-0 bg-red-500 bg-opacity-50 flex items-center justify-center z-10 game-over-animation';
         
-        // 상금 한도 설정
-        appleGold = Math.min(appleGold, 50);
+        // 게임 오버 메시지
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'bg-white p-3 rounded-lg text-center';
+        messageDiv.innerHTML = '<div class="text-xl font-bold text-red-600 mb-1">게임 오버!</div><div class="text-sm">벌레를 먹었습니다!</div>';
         
-        // UI 업데이트
-        document.getElementById('appleGold').textContent = appleGold;
-        document.getElementById('appleGameResult').classList.remove('hidden');
-        document.getElementById('finalAppleGold').textContent = appleGold;
+        gameOverlay.appendChild(messageDiv);
+        gameArea.appendChild(gameOverlay);
+      }
+      
+      function endGame(isGameOver = false) {
+        appleGameActive = false;
         
-        // 골드 증가
-        const gold = document.getElementById('gold');
-        gold.textContent = parseInt(gold.textContent) + appleGold;
+        // 인터벌 정리
+        clearInterval(gameInterval);
+        clearInterval(collisionInterval);
         
-        // 알림 표시
-        showToast(`${appleGold} 골드가 지급되었습니다!`, 'success');
+        if (!isGameOver) {
+          // 정상 종료 (시간 초과)
+          // 골드 계산 (사과 1개당 3골드)
+          appleGold = appleScore * 3;
+          
+          // 상금 한도 설정
+          appleGold = Math.min(appleGold, 50);
+          
+          // UI 업데이트
+          document.getElementById('appleGold').textContent = appleGold;
+          document.getElementById('appleGameResult').classList.remove('hidden');
+          document.getElementById('finalAppleGold').textContent = appleGold;
+          
+          // 골드 증가
+          const gold = document.getElementById('gold');
+          gold.textContent = parseInt(gold.textContent) + appleGold;
+          
+          // 알림 표시
+          showToast(`${appleGold} 골드가 지급되었습니다!`, 'success');
+        } else {
+          // 게임 오버 (벌레 먹음)
+          // 결과 메시지 표시
+          document.getElementById('appleGameResult').classList.remove('hidden');
+          document.getElementById('appleGameResult').querySelector('div').innerHTML = `
+            <div class="text-red-600 font-bold">게임 오버! 벌레를 먹었습니다.</div>
+            <div class="mt-1">획득한 사과: ${appleScore}개</div>
+          `;
+        }
         
         // 다시하기 버튼 표시
         document.getElementById('applePlayAgainBtn').classList.remove('hidden');
