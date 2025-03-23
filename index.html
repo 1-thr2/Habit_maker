@@ -1,12 +1,282 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <!-- 기존 코드 그대로 유지 -->
-  <!-- CSS 부분에 추가 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>목표 달성 or Die</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
-    /* 기존 스타일 그대로 유지하고 아래 스타일 추가 */
+    /* 기본 스타일 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
     
-    /* 바구니 드래그 가능 스타일 */
+    :root {
+      --primary-color: #3B82F6;
+      --secondary-color: #1D4ED8;
+      --accent-color: #FBBF24;
+      --success-color: #10B981;
+      --danger-color: #EF4444;
+      --background-color: #F3F4F6;
+      --card-color: #FFFFFF;
+    }
+    
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--background-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+    
+    .text-xxs {
+      font-size: 0.65rem;
+    }
+    
+    .app-container {
+      background-color: var(--card-color);
+      max-width: 420px;
+      width: 100%;
+      height: 740px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      position: relative;
+      border: 10px solid #000;
+    }
+    
+    /* 상단 상태바 디자인 */
+    .status-bar {
+      height: 24px;
+      background-color: #000000;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 0.7rem;
+    }
+    
+    /* 탭 내용 스타일 */
+    .tab-content {
+      display: none;
+      height: calc(100% - 130px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* 애니메이션 */
+    .animated-pulse {
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    .slide-up {
+      animation: slideUp 0.3s ease-in-out;
+    }
+    
+    @keyframes slideUp {
+      0% { transform: translateY(20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    .shake {
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px) rotate(-5deg); }
+      75% { transform: translateX(5px) rotate(5deg); }
+    }
+    
+    /* 사과/벌레 떨어지는 애니메이션 */
+    .falling-item {
+      position: absolute;
+      animation: falling linear forwards;
+    }
+    
+    @keyframes falling {
+      0% { top: -30px; }
+      100% { top: 230px; }
+    }
+    
+    /* 바구니 이동 애니메이션 */
+    .basket-move {
+      transition: left 0.2s ease-out;
+    }
+    
+    /* 게임 점수 애니메이션 */
+    .score-pop {
+      animation: pop 0.5s ease-out;
+    }
+    
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    
+    /* 벌레 감점 애니메이션 */
+    .penalty-shake {
+      animation: shake 0.3s ease-in-out;
+    }
+    
+    /* 게임오버 애니메이션 */
+    .game-over-animation {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    /* 탭 바 스타일 */
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #FFFFFF;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #E5E7EB;
+    }
+    
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #9CA3AF;
+    }
+    
+    .tab-btn.active {
+      color: var(--primary-color);
+    }
+    
+    .tab-btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* 능력치 바 애니메이션 */
+    .stat-bar {
+      transition: width 0.5s ease-out;
+    }
+    
+    /* 버튼 스타일 */
+    .primary-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    
+    .primary-btn:active {
+      transform: scale(0.98);
+      background-color: var(--secondary-color);
+    }
+    
+    .secondary-btn {
+      background-color: var(--accent-color);
+      color: #4B5563;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    
+    .secondary-btn:active {
+      transform: scale(0.98);
+      background-color: #F59E0B;
+    }
+    
+    /* 게임 카드 스타일 */
+    .game-card {
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+    }
+    
+    .game-card:active {
+      transform: scale(0.98);
+    }
+    
+    /* 카메라 스타일 */
+    .camera-viewfinder {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* 진행 상태 바 */
+    .progress-bar {
+      height: 0.25rem;
+      border-radius: 0.25rem;
+      overflow: hidden;
+      background-color: #E5E7EB;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 0.25rem;
+      transition: width 0.5s ease-out;
+    }
+    
+    /* 토스트 메시지 스타일 */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #374151;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      z-index: 50;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      animation: toast 3s ease-in-out forwards;
+    }
+    
+    @keyframes toast {
+      0% { opacity: 0; transform: translate(-50%, -20px); }
+      10% { opacity: 1; transform: translate(-50%, 0); }
+      90% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -20px); }
+    }
+    
+    /* 바구니 드래그 스타일 */
     .draggable {
       cursor: grab;
       user-select: none;
@@ -16,355 +286,940 @@
     .draggable:active {
       cursor: grabbing;
     }
-    
-    /* 게임 컨트롤 버튼 숨김 */
-    .controls-hidden {
-      display: none;
-    }
   </style>
 </head>
 <body>
-  <!-- 기존 HTML 코드는 그대로 유지하되 아래 부분만 수정 -->
+  <div class="app-container">
+    <!-- 상태바 -->
+    <div class="status-bar">
+      <div>12:30</div>
+      <div class="flex space-x-1">
+        <div>📶</div>
+        <div>📡</div>
+        <div>🔋</div>
+      </div>
+  </div>
   
-  <!-- 사과 게임 화면에서 컨트롤 버튼 제거 -->
-  <div id="appleGameTab" class="tab-content p-4 hidden">
-    <div class="text-lg font-bold mb-3 text-center">사과 게임</div>
-    <div class="bg-red-50 p-4 rounded-lg shadow">
-      <div class="text-center text-sm mb-3">
-        사과를 받고 벌레는 피하세요! 최대 50골드!
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 탭 전환 관련 변수
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      // 탭 전환 함수
+      function switchTab(tabId) {
+        // 모든 탭 버튼 비활성화
+        tabBtns.forEach(btn => {
+          btn.classList.remove('active');
+        });
+        
+        // 클릭한 탭 버튼 활성화
+        if (tabId === 'homeTab') {
+          document.getElementById('homeTabBtn').classList.add('active');
+        } else if (tabId === 'shopTab') {
+          document.getElementById('shopTabBtn').classList.add('active');
+        } else if (tabId === 'profileTab') {
+          document.getElementById('profileTabBtn').classList.add('active');
+        }
+        
+        // 모든 탭 콘텐츠 숨기기
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
+        // 해당 탭 보이기
+        document.getElementById(tabId).classList.remove('hidden');
+        document.getElementById(tabId).classList.add('active');
+      }
+      
+      // 골드 동기화 함수
+      function syncGold() {
+        const goldValue = document.getElementById('gold').textContent;
+        document.getElementById('shopGold').textContent = goldValue;
+      }
+      
+      // 토스트 메시지 표시 함수
+      function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        
+        if (type === 'success') {
+          toast.classList.add('bg-green-600');
+        } else if (type === 'error') {
+          toast.classList.add('bg-red-600');
+        } else if (type === 'info') {
+          toast.classList.add('bg-blue-600');
+        }
+        
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 3초 후 제거
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 3000);
+      }
+      
+      // 탭 버튼 이벤트 리스너
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          let targetId = '';
+          if (btn.id === 'homeTabBtn') targetId = 'homeTab';
+          else if (btn.id === 'shopTabBtn') targetId = 'shopTab';
+          else if (btn.id === 'profileTabBtn') targetId = 'profileTab';
+          
+          switchTab(targetId);
+          
+          // 상점 탭으로 이동 시 골드 동기화
+          if (targetId === 'shopTab') {
+            syncGold();
+          }
+        });
+      });
+      
+      // 골드 버튼 클릭 시 상점으로 이동
+      document.getElementById('goldBtn').addEventListener('click', () => {
+        switchTab('shopTab');
+        syncGold();
+      });
+      
+      // 광고 시청 함수
+      function watchAd(callback) {
+        // 광고 화면으로 전환
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
+        const adWatchTab = document.getElementById('adWatchTab');
+        adWatchTab.classList.remove('hidden');
+        adWatchTab.classList.add('active');
+        
+        let timeLeft = 5;
+        document.getElementById('adTimeLeft').textContent = timeLeft;
+        
+        // 광고 진행 바 애니메이션
+        const adProgress = document.getElementById('adProgress');
+        adProgress.style.width = '0%';
+        
+        // 광고 시간 진행
+        const adInterval = setInterval(() => {
+          timeLeft--;
+          document.getElementById('adTimeLeft').textContent = timeLeft;
+          adProgress.style.width = `${(5 - timeLeft) * 20}%`;
+          
+          if (timeLeft <= 0) {
+            clearInterval(adInterval);
+            
+            // 광고 건너뛰기 버튼 활성화
+            document.getElementById('skipAdBtn').disabled = false;
+            document.getElementById('skipAdBtn').classList.remove('bg-gray-300', 'text-gray-500');
+            document.getElementById('skipAdBtn').classList.add('bg-yellow-500', 'text-white');
+            
+            // 광고 완료 후 콜백 실행
+            document.getElementById('skipAdBtn').addEventListener('click', () => {
+              if (callback) callback();
+            }, { once: true });
+          }
+        }, 1000);
+      }
+      
+      // 인증하기 버튼 기능
+      document.getElementById('checkInBtn').addEventListener('click', function() {
+        // 카메라 화면으로 전환
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
+        document.getElementById('cameraTab').classList.remove('hidden');
+        document.getElementById('cameraTab').classList.add('active');
+      });
+      
+      // 카메라 취소 버튼
+      document.getElementById('cancelCameraBtn').addEventListener('click', () => {
+        switchTab('homeTab');
+      });
+      
+      // 촬영 버튼
+      document.getElementById('captureBtn').addEventListener('click', function() {
+        // 카메라 애니메이션
+        const viewfinder = document.getElementById('cameraViewfinder');
+        const overlay = document.getElementById('cameraOverlay');
+        
+        viewfinder.textContent = '📸';
+        
+        // 플래시 효과
+        overlay.style.opacity = '1';
+        setTimeout(() => {
+          overlay.style.opacity = '0';
+        }, 150);
+        
+        // 인증 완료 화면으로 전환
+        setTimeout(() => {
+          tabContents.forEach(content => {
+            content.classList.add('hidden');
+            content.classList.remove('active');
+          });
+          
+          document.getElementById('checkInCompleteTab').classList.remove('hidden');
+          document.getElementById('checkInCompleteTab').classList.add('active');
+          
+          // 랜덤 동기부여 메시지
+          const messages = [
+            "좋아요! 오늘도 한 걸음 더 성장했어요!",
+            "습관은 인생을 바꾸는 마법이에요!",
+            "인증 성공! 성실함은 인생 최고의 제갑부품!",
+            "오늘 노력이 평생 인턴을 막는다!",
+            "퇴근 후 코딩도 당신의 내일을 바꿉니다!"
+          ];
+          document.getElementById('motivationMessage').textContent = 
+            messages[Math.floor(Math.random() * messages.length)];
+          
+          // 골드 증가
+          const gold = document.getElementById('gold');
+          gold.textContent = parseInt(gold.textContent) + 10;
+          
+          // 생존일 증가
+          const days = document.getElementById('days');
+          const profileDays = document.getElementById('profileDays');
+          let currentDays = parseInt(days.textContent);
+          days.textContent = currentDays + 1;
+          profileDays.textContent = currentDays + 1;
+        }, 500);
+      });
+      
+      // 인증 완료 확인 버튼
+      document.getElementById('checkInDoneBtn').addEventListener('click', () => {
+        switchTab('homeTab');
+        
+        // 알림 표시
+        showToast('10 골드가 지급되었습니다!', 'success');
+      });
+      
+      // 광고보기 버튼 기능
+      document.getElementById('adBtn').addEventListener('click', function() {
+        // 광고 시청
+        watchAd(() => {
+          // 광고 완료 후 게임 선택 화면으로 전환
+          tabContents.forEach(content => {
+            content.classList.add('hidden');
+            content.classList.remove('active');
+          });
+          
+          document.getElementById('adCompleteTab').classList.remove('hidden');
+          document.getElementById('adCompleteTab').classList.add('active');
+        });
+      });
+      
+      // 3골드 확정 선택
+      document.getElementById('confirmRewardBtn').addEventListener('click', () => {
+        // 골드 증가
+        const gold = document.getElementById('gold');
+        gold.textContent = parseInt(gold.textContent) + 3;
+        
+        // 홈 화면으로 돌아가기
+        switchTab('homeTab');
+        
+        // 알림 표시
+        showToast('3 골드가 지급되었습니다!', 'success');
+      });
+      
+      // 게임 선택 버튼들
+      document.getElementById('rpsGameBtn').addEventListener('click', () => {
+        // 게임 선택 화면 숨기기
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
+        // 가위바위보 게임 화면 표시
+        document.getElementById('rpsGameTab').classList.remove('hidden');
+        document.getElementById('rpsGameTab').classList.add('active');
+        
+        // 결과 초기화
+        document.getElementById('rpsResult').classList.add('hidden');
+        document.getElementById('rpsWinResult').classList.add('hidden');
+        document.getElementById('rpsLoseResult').classList.add('hidden');
+        document.getElementById('rpsDrawResult').classList.add('hidden');
+        document.getElementById('rpsAgainBtn').classList.add('hidden');
+        
+        // 가위바위보 버튼 활성화
+        document.querySelectorAll('.rps-choice').forEach(btn => {
+          btn.disabled = false;
+        });
+      });
+      
+      document.getElementById('oddEvenGameBtn').addEventListener('click', () => {
+        // 게임 선택 화면 숨기기
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
+        // 홀짝 게임 화면 표시
+        document.getElementById('oddEvenGameTab').classList.remove('hidden');
+        document.getElementById('oddEvenGameTab').classList.add('active');
+        
+        // 홀짝 게임 초기화
+        initOddEvenGame();
+      });
+      
+      document.getElementById('appleGameBtn').addEventListener('click', () => {
+        // 게임 선택 화면 숨기기
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        });
+        
+        // 사과 게임 화면 표시
+        document.getElementById('appleGameTab').classList.remove('hidden');
+        document.getElementById('appleGameTab').classList.add('active');
+        
+        // 사과 게임 초기화
+        initAppleGame();
+      });
+      
+      // 가위바위보 게임 관련 코드
+      const rpsChoices = document.querySelectorAll('.rps-choice');
+      rpsChoices.forEach(choice => {
+        choice.addEventListener('click', () => {
+          // 버튼 비활성화
+          rpsChoices.forEach(btn => btn.disabled = true);
+          
+          // 플레이어 선택
+          const playerChoice = choice.getAttribute('data-choice');
+          document.getElementById('playerRpsChoice').textContent = choice.textContent;
+          
+          // 컴퓨터 선택
+          const choices = ['✌️', '✊', '🖐️'];
+          const computerChoice = choices[Math.floor(Math.random() * 3)];
+          document.getElementById('computerRpsChoice').textContent = computerChoice;
+          
+          // 결과 확인
+          const resultDiv = document.getElementById('rpsResult');
+          const winResult = document.getElementById('rpsWinResult');
+          const loseResult = document.getElementById('rpsLoseResult');
+    </div>
+    
+    <!-- 앱 헤더 -->
+    <div class="bg-blue-600 text-white p-3 flex justify-between items-center">
+      <div class="font-bold">목표 달성 or Die</div>
+      <div class="flex items-center space-x-2">
+        <div class="text-xs text-center text-gray-500 mb-12">
+          게임 승리 시 더 많은 골드를 획득할 수 있습니다!
+        </div>
       </div>
       
-      <div class="relative h-60 bg-blue-50 rounded-lg mb-4 overflow-hidden border-2 border-blue-100">
-        <div id="appleGameArea" class="absolute inset-0">
-          <!-- 게임 요소들이 여기에 추가됩니다 -->
-          <div id="gameBasket" class="absolute bottom-0 text-3xl draggable" style="left: 45%;">🧺</div>
+      <!-- 광고 시청 화면 -->
+      <div id="adWatchTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">광고 시청 중...</div>
+        <div class="bg-gray-800 h-64 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden">
+          <div id="adContent" class="text-white text-center">
+            <div class="text-2xl mb-2">광고 재생 중</div>
+            <div class="animate-pulse">
+              <div class="text-6xl mb-4">📱</div>
+              <div class="text-lg">최신 스마트폰 출시!</div>
+            </div>
+          </div>
+          
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-600">
+            <div id="adProgress" class="h-full bg-yellow-500" style="width: 0%"></div>
+          </div>
+          
+          <div class="absolute top-2 right-2 text-xs bg-gray-700 text-white px-1 rounded">
+            AD
+          </div>
         </div>
         
-        <!-- 게임 컨트롤 버튼 제거 -->
-        <!-- <div id="gameControlsOverlay" class="absolute inset-x-0 bottom-0 h-12 flex justify-between items-center z-10 px-4 controls-hidden">
-          <button id="moveLeftBtn" class="bg-blue-500 bg-opacity-70 text-white h-10 w-10 rounded-full flex items-center justify-center text-xl">
-            ←
-          </button>
-          <button id="moveRightBtn" class="bg-blue-500 bg-opacity-70 text-white h-10 w-10 rounded-full flex items-center justify-center text-xl">
-            →
-          </button>
-        </div> -->
-        
-        <div id="gameTimer" class="absolute top-2 right-2 bg-white bg-opacity-70 text-xs font-bold px-2 py-1 rounded-full">
-          30초
+        <div class="text-sm text-center text-gray-500 mb-4">
+          잠시만 기다려주세요... (<span id="adTimeLeft">5</span>초)
         </div>
         
-        <div id="gameOverlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-          <div class="bg-white p-4 rounded-lg text-center">
-            <div class="text-xl font-bold mb-2">준비 완료!</div>
-            <div class="text-sm mb-3">화면을 슬라이드해서 바구니를 움직이세요</div>
-            <button id="startGameBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
-              게임 시작!
+        <button id="skipAdBtn" class="bg-gray-300 text-gray-500 font-bold py-3 rounded-lg w-full" disabled>
+          광고 건너뛰기
+        </button>
+      </div>
+    </div>
+    
+    <!-- 탭 바 -->
+    <div class="tab-bar">
+      <div id="homeTabBtn" class="tab-btn active">
+        <span class="text-2xl">🏠</span>
+        <span class="text-xs">홈</span>
+      </div>
+      <div id="shopTabBtn" class="tab-btn">
+        <span class="text-2xl">🛒</span>
+        <span class="text-xs">상점</span>
+      </div>
+      <div id="profileTabBtn" class="tab-btn">
+        <span class="text-2xl">👤</span>
+        <span class="text-xs">프로필</span>
+      </div>
+    </div>
+      </div>
+      
+      <!-- 사과 게임 화면 -->
+      <div id="appleGameTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">사과 게임</div>
+        <div class="bg-red-50 p-4 rounded-lg shadow">
+          <div class="text-center text-sm mb-3">
+            사과를 받고 벌레는 피하세요! 최대 50골드!
+          </div>
+          
+          <div class="relative h-60 bg-blue-50 rounded-lg mb-4 overflow-hidden border-2 border-blue-100">
+            <div id="appleGameArea" class="absolute inset-0">
+              <!-- 게임 요소들이 여기에 추가됩니다 -->
+              <div id="gameBasket" class="absolute bottom-0 text-3xl draggable" style="left: 45%;">🧺</div>
+            </div>
+            
+            <div id="gameTimer" class="absolute top-2 right-2 bg-white bg-opacity-70 text-xs font-bold px-2 py-1 rounded-full">
+              30초
+            </div>
+            
+            <div id="gameOverlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+              <div class="bg-white p-4 rounded-lg text-center">
+                <div class="text-xl font-bold mb-2">준비 완료!</div>
+                <div class="text-sm mb-3">화면을 슬라이드해서 바구니를 움직이세요</div>
+                <button id="startGameBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
+                  게임 시작!
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-white p-2 rounded-lg shadow text-center">
+              <div class="text-xs text-gray-500">사과 점수</div>
+              <div class="font-bold text-base text-red-500"><span id="appleScore">0</span>개</div>
+            </div>
+            <div class="bg-white p-2 rounded-lg shadow text-center">
+              <div class="text-xs text-gray-500">벌레 감점</div>
+              <div class="font-bold text-base text-green-700">-<span id="bugPenalty">0</span>개</div>
+            </div>
+            <div class="bg-white p-2 rounded-lg shadow text-center">
+              <div class="text-xs text-gray-500">골드</div>
+              <div class="font-bold text-base text-yellow-500"><span id="appleGold">0</span>골드</div>
+            </div>
+          </div>
+          
+          <div id="appleGameResult" class="hidden">
+            <div class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold">
+              게임 종료! <span id="finalAppleGold">0</span>골드 획득!
+            </div>
+          </div>
+          
+          <div class="flex justify-between">
+            <button id="appleBackBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg">
+              그만두기
+            </button>
+            <button id="appleCashOutBtn" class="bg-green-500 text-white font-bold px-4 py-2 rounded-lg hidden">
+              현재 골드 받기
+            </button>
+            <button id="applePlayAgainBtn" class="bg-blue-500 text-white font-bold px-4 py-2 rounded-lg hidden">
+              다시하기 (광고)
             </button>
           </div>
         </div>
       </div>
       
-      <div class="grid grid-cols-3 gap-2 mb-4">
-        <div class="bg-white p-2 rounded-lg shadow text-center">
-          <div class="text-xs text-gray-500">사과 점수</div>
-          <div class="font-bold text-base text-red-500"><span id="appleScore">0</span>개</div>
-        </div>
-        <div class="bg-white p-2 rounded-lg shadow text-center">
-          <div class="text-xs text-gray-500">벌레 감점</div>
-          <div class="font-bold text-base text-green-700">-<span id="bugPenalty">0</span>개</div>
-        </div>
-        <div class="bg-white p-2 rounded-lg shadow text-center">
-          <div class="text-xs text-gray-500">골드</div>
-          <div class="font-bold text-base text-yellow-500"><span id="appleGold">0</span>골드</div>
+      <!-- 홀짝 게임 화면 -->
+      <div id="oddEvenGameTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">홀짝 게임</div>
+        <div class="bg-purple-50 p-4 rounded-lg shadow">
+          <div id="oddEvenStage1" class="active-stage">
+            <div class="text-center text-sm mb-3">1단계: 홀/짝 맞추기 (맞추면 8골드)</div>
+            
+            <div id="diceContainer" class="h-32 flex items-center justify-center mb-4">
+              <div id="dice" class="text-7xl">🎲</div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <button id="oddBtn" class="bg-purple-500 text-white py-3 rounded-lg text-sm font-bold">
+                홀수 (1,3,5)
+              </button>
+              <button id="evenBtn" class="bg-indigo-500 text-white py-3 rounded-lg text-sm font-bold">
+                짝수 (2,4,6)
+              </button>
+            </div>
+          </div>
+          
+          <div id="oddEvenStage2" class="hidden">
+            <div class="text-center text-sm mb-3">2단계: 정확한 숫자 맞추기</div>
+            <div class="bg-green-100 text-green-700 p-3 rounded-lg text-sm text-center mb-4">
+              8골드 획득! 숫자를 맞추면 총 30골드, 그만두면 8골드
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="1">1</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="2">2</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="3">3</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="4">4</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="5">5</button>
+              <button class="exact-number-btn bg-purple-500 text-white py-3 rounded-lg text-xl font-bold" data-number="6">6</button>
+            </div>
+            
+            <button id="keepGoldBtn" class="bg-green-500 text-white py-3 rounded-lg text-sm font-bold w-full mb-3">
+              8골드 가져가기
+            </button>
+          </div>
+          
+          <div id="diceResult" class="hidden">
+            <div id="oddEvenWinResult" class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              정답! 8골드 획득!
+            </div>
+            <div id="exactNumberWinResult" class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              대성공! 30골드 획득!
+            </div>
+            <div id="oddEvenLoseResult" class="bg-red-100 text-red-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              틀렸습니다!
+            </div>
+          </div>
+          
+          <div class="flex justify-between mt-4">
+            <button id="oddEvenBackBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg">
+              그만두기
+            </button>
+            <button id="oddEvenAgainBtn" class="bg-purple-500 text-white font-bold px-4 py-2 rounded-lg hidden">
+              다시하기 (광고)
+            </button>
+          </div>
         </div>
       </div>
       
-      <div id="appleGameResult" class="hidden">
-        <div class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold">
-          게임 종료! <span id="finalAppleGold">0</span>골드 획득!
+      <!-- 가위바위보 게임 화면 -->
+      <div id="rpsGameTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">가위바위보 게임</div>
+        <div class="bg-blue-50 p-4 rounded-lg shadow">
+          <div class="text-center text-sm mb-3">승리 시 8골드를 획득합니다!</div>
+          
+          <div id="rpsChoices" class="flex justify-between mb-4">
+            <button class="rps-choice bg-white shadow text-3xl p-2 rounded-lg w-16 h-16 flex items-center justify-center" data-choice="가위">✌️</button>
+            <button class="rps-choice bg-white shadow text-3xl p-2 rounded-lg w-16 h-16 flex items-center justify-center" data-choice="바위">✊</button>
+            <button class="rps-choice bg-white shadow text-3xl p-2 rounded-lg w-16 h-16 flex items-center justify-center" data-choice="보">🖐️</button>
+          </div>
+          
+          <div id="rpsResult" class="hidden">
+            <div class="flex justify-between mb-4">
+              <div class="text-center">
+                <div class="text-xs mb-2">나</div>
+                <div id="playerRpsChoice" class="text-4xl bg-white p-2 rounded-lg shadow">✊</div>
+              </div>
+              <div class="flex items-center text-xl font-bold text-red-500">VS</div>
+              <div class="text-center">
+                <div class="text-xs mb-2">컴퓨터</div>
+                <div id="computerRpsChoice" class="text-4xl bg-white p-2 rounded-lg shadow">✌️</div>
+              </div>
+            </div>
+            
+            <div id="rpsWinResult" class="bg-green-100 text-green-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              승리! 8골드 획득!
+            </div>
+            <div id="rpsLoseResult" class="bg-red-100 text-red-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              패배했습니다!
+            </div>
+            <div id="rpsDrawResult" class="bg-gray-100 text-gray-600 text-center p-3 rounded-lg mb-3 text-sm font-bold hidden">
+              무승부! 다시 도전!
+            </div>
+          </div>
+          
+          <div class="flex justify-between mt-4">
+            <button id="rpsBackBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg">
+              그만두기
+            </button>
+            <button id="rpsAgainBtn" class="bg-blue-500 text-white font-bold px-4 py-2 rounded-lg hidden">
+              다시하기 (광고)
+            </button>
+          </div>
         </div>
-      </div>
-      
-      <div class="flex justify-between">
-        <button id="appleBackBtn" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-lg">
-          그만두기
-        </button>
-        <button id="appleCashOutBtn" class="bg-green-500 text-white font-bold px-4 py-2 rounded-lg hidden">
-          현재 골드 받기
-        </button>
-        <button id="applePlayAgainBtn" class="bg-blue-500 text-white font-bold px-4 py-2 rounded-lg hidden">
-          다시하기 (광고)
-        </button>
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm font-bold">보상 선택:</div>
+            <button id="confirmRewardBtn" class="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center">
+              <span class="mr-1">💰</span>
+              <span>3골드 확정</span>
+            </button>
+          </div>
+          
+          <div class="text-sm font-bold mb-3">또는 미니게임 도전:</div>
+          <div class="grid grid-cols-3 gap-3">
+            <button id="rpsGameBtn" class="game-card bg-blue-500 text-white p-3 rounded-lg flex flex-col items-center justify-center">
+              <span class="text-2xl mb-2">✂️</span>
+              <span class="text-xs">가위바위보</span>
+              <span class="text-xxs font-bold">최대 8골드</span>
+            </button>
+            <button id="oddEvenGameBtn" class="game-card bg-purple-500 text-white p-3 rounded-lg flex flex-col items-center justify-center">
+              <span class="text-2xl mb-2">🎲</span>
+              <span class="text-xs">홀짝 게임</span>
+              <span class="text-xxs font-bold">최대 30골드</span>
+            </button>
+            <button id="appleGameBtn" class="game-card bg-red-500 text-white p-3 rounded-lg flex flex-col items-center justify-center">
+              <span class="text-2xl mb-2">🍎</span>
+              <span class="text-xs">사과 게임</span>
+              <span class="text-xxs font-bold">최대 50골드</span>
+            </button>
+          </div>
+        </div>bg-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-medium">Lv.<span id="level">3</span></div>
+        <div id="goldBtn" class="flex items-center bg-blue-700 px-2 py-0.5 rounded-full cursor-pointer">
+          <span class="mr-1">💰</span>
+          <span id="gold">85</span>
+        </div>
       </div>
     </div>
-  </div>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // 기존 코드 유지
-      
-      // 사과 게임 관련 코드 수정
-      let appleScore = 0;
-      let bugPenalty = 0;
-      let appleGold = 0;
-      let appleGameActive = false;
-      let gameInterval;
-      let gameTimeLeft = 30;
-      let basketPosition = 45; // 바구니 위치 (%)
-      const basketWidth = 10; // 바구니 너비 (%)
-      const basketElement = document.getElementById('gameBasket');
-      const gameArea = document.getElementById('appleGameArea');
-      const gameWidth = 100; // 게임 영역 너비 (%)
-      
-      // 기존 사과 게임 초기화 함수 - 그대로 유지
-      function initAppleGame() {
-        // 게임 초기화
-        appleScore = 0;
-        bugPenalty = 0;
-        appleGold = 0;
-        appleGameActive = false;
-        gameTimeLeft = 30;
-        basketPosition = 45;
-        basketElement.style.left = `${basketPosition}%`;
-        
-        // UI 초기화
-        document.getElementById('appleScore').textContent = appleScore;
-        document.getElementById('bugPenalty').textContent = bugPenalty;
-        document.getElementById('appleGold').textContent = appleGold;
-        document.getElementById('gameTimer').textContent = `${gameTimeLeft}초`;
-        document.getElementById('appleGameResult').classList.add('hidden');
-        
-        // 게임 요소 초기화
-        const items = document.querySelectorAll('.falling-item');
-        items.forEach(item => item.remove());
-        
-        // 버튼 상태 초기화
-        document.getElementById('appleCashOutBtn').classList.add('hidden');
-        document.getElementById('applePlayAgainBtn').classList.add('hidden');
-        
-        // 게임 준비 오버레이 표시
-        document.getElementById('gameOverlay').classList.remove('hidden');
-      }
-      
-      // 게임 시작 버튼
-      document.getElementById('startGameBtn').addEventListener('click', function() {
-        // 게임 준비 오버레이 숨기기
-        document.getElementById('gameOverlay').classList.add('hidden');
-        
-        // 게임 활성화
-        appleGameActive = true;
-        
-        // 타이머 시작
-        startGameTimer();
-        
-        // 아이템 생성 시작
-        gameInterval = setInterval(generateFallingItem, 800); // 0.8초마다 아이템 생성
-      });
-      
-      // 기존 함수들 - 그대로 유지
-      function startGameTimer() {
-        const timerInterval = setInterval(() => {
-          gameTimeLeft--;
-          document.getElementById('gameTimer').textContent = `${gameTimeLeft}초`;
+    
+    <!-- 앱 콘텐츠 영역 -->
+    <div class="app-content relative">
+      <!-- 홈 탭 -->
+      <div id="homeTab" class="tab-content active p-4">
+        <div class="bg-white rounded-lg p-4 mb-4 shadow">
+          <div class="flex justify-between mb-3">
+            <div class="text-xs text-gray-500">목표: 코딩 공부하기</div>
+            <div class="text-xs text-green-600 font-bold"><span id="days">7</span>일째 생존중</div>
+          </div>
           
-          // 시간이 다 되면 게임 종료
-          if (gameTimeLeft <= 0) {
-            clearInterval(timerInterval);
-            clearInterval(gameInterval);
-            endGame();
-          }
-        }, 1000);
-      }
-      
-      function endGame() {
-        appleGameActive = false;
-        
-        // 골드 계산 (사과 1개당 3골드, 벌레 1개당 -2골드)
-        const totalScore = Math.max(0, appleScore - bugPenalty);
-        appleGold = totalScore * 3;
-        
-        // 상금 한도 설정
-        appleGold = Math.min(appleGold, 50);
-        
-        // UI 업데이트
-        document.getElementById('appleGold').textContent = appleGold;
-        document.getElementById('appleGameResult').classList.remove('hidden');
-        document.getElementById('finalAppleGold').textContent = appleGold;
-        
-        // 골드 증가
-        const gold = document.getElementById('gold');
-        gold.textContent = parseInt(gold.textContent) + appleGold;
-        
-        // 알림 표시
-        showToast(`${appleGold} 골드가 지급되었습니다!`, 'success');
-        
-        // 다시하기 버튼 표시
-        document.getElementById('applePlayAgainBtn').classList.remove('hidden');
-      }
-      
-      function generateFallingItem() {
-        if (!appleGameActive) return;
-        
-        const gameArea = document.getElementById('appleGameArea');
-        const item = document.createElement('div');
-        
-        // 80% 확률로 사과, 20% 확률로 벌레
-        const isApple = Math.random() < 0.8;
-        item.textContent = isApple ? '🍎' : '🐛';
-        item.className = 'falling-item text-2xl';
-        item.dataset.type = isApple ? 'apple' : 'bug';
-        
-        // 랜덤 위치 (좌우)
-        const left = Math.floor(Math.random() * 85) + 5; // 5% ~ 90%
-        item.style.left = `${left}%`;
-        
-        // 랜덤 속도 (아래로 떨어지는 시간)
-        const fallSpeed = Math.random() * 1 + 1.5; // 1.5초 ~ 2.5초
-        item.style.animationDuration = `${fallSpeed}s`;
-        
-        gameArea.appendChild(item);
-        
-        // 아이템이 바닥에 닿았을 때 검사
-        item.addEventListener('animationend', () => {
-          // 바구니 위치와 아이템 위치 비교
-          const itemLeft = parseFloat(item.style.left);
+          <div class="flex justify-center mb-4">
+            <div class="relative">
+              <div class="text-6xl" id="character">👨‍💻</div>
+              <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span id="notificationCount">3</span>
+              </div>
+            </div>
+          </div>
           
-          // 충돌 감지 (바구니와 아이템이 겹치는지)
-          if (itemLeft >= basketPosition - basketWidth/2 && itemLeft <= basketPosition + basketWidth/2) {
-            // 바구니에 들어옴
-            if (item.dataset.type === 'apple') {
-              // 사과 획득
-              appleScore++;
-              document.getElementById('appleScore').textContent = appleScore;
-              
-              // 점수 증가 애니메이션
-              const scoreElement = document.getElementById('appleScore');
-              scoreElement.classList.add('score-pop');
-              setTimeout(() => {
-                scoreElement.classList.remove('score-pop');
-              }, 500);
-            } else {
-              // 벌레 감점
-              bugPenalty++;
-              document.getElementById('bugPenalty').textContent = bugPenalty;
-              
-              // 감점 애니메이션
-              const penaltyElement = document.getElementById('bugPenalty');
-              penaltyElement.classList.add('penalty-shake');
-              setTimeout(() => {
-                penaltyElement.classList.remove('penalty-shake');
-              }, 300);
-              
-              // 바구니 흔들림 애니메이션
-              basketElement.classList.add('shake');
-              setTimeout(() => {
-                basketElement.classList.remove('shake');
-              }, 300);
-            }
-          }
+          <div class="space-y-2 mb-4">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="flex items-center">
+                  <span class="mr-1 text-blue-500">🧠</span>
+                  <span>지능</span>
+                </span>
+                <span><span id="intelligence">50</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="intelligenceBar" class="progress-fill bg-blue-500" style="width: 50%"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="flex items-center">
+                  <span class="mr-1 text-green-500">💪</span>
+                  <span>체력</span>
+                </span>
+                <span><span id="strength">35</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="strengthBar" class="progress-fill bg-green-500" style="width: 35%"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="flex items-center">
+                  <span class="mr-1 text-purple-500">💡</span>
+                  <span>창의력</span>
+                </span>
+                <span><span id="creativity">42</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="creativityBar" class="progress-fill bg-purple-500" style="width: 42%"></div>
+              </div>
+            </div>
+          </div>
           
-          // 아이템 제거
-          item.remove();
-        });
-      }
-      
-      // 이동 버튼 이벤트 리스너 제거하고 새로운 드래그 이벤트 리스너 추가
-      
-      // 바구니 드래그 기능 구현
-      let isDragging = false;
-      let lastTouchX = 0;
-      let lastMouseX = 0;
-      const gameAreaBounds = gameArea.getBoundingClientRect();
-      
-      // 터치 이벤트 (모바일)
-      basketElement.addEventListener('touchstart', function(e) {
-        if (!appleGameActive) return;
-        isDragging = true;
-        lastTouchX = e.touches[0].clientX;
-        basketElement.classList.add('grabbing');
-        e.preventDefault(); // 기본 동작 방지
-      });
-      
-      document.addEventListener('touchmove', function(e) {
-        if (!isDragging || !appleGameActive) return;
+          <div class="bg-red-50 p-3 rounded-lg text-xs text-center font-bold text-red-600 mb-4">
+            현재 예상 미래: <span id="job">전체 야근 개발자</span>
+          </div>
+          
+          <button id="checkInBtn" class="primary-btn mb-3">
+            <span class="mr-2">📸</span>
+            <span>오늘의 인증하기</span>
+          </button>
+          
+          <button id="adBtn" class="secondary-btn">
+            <span class="mr-2">🎬</span>
+            <span>광고보고 골드 받기</span>
+          </button>
+        </div>
         
-        const gameAreaBounds = gameArea.getBoundingClientRect();
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - lastTouchX;
-        lastTouchX = touch.clientX;
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="text-sm font-bold mb-2">오늘의 동기부여</div>
+          <div class="text-xs text-gray-600 italic">
+            "지능 0, 출석률 100 = 열정만렙 빌드지만 평생 인턴..."
+          </div>
+        </div>
         
-        // 이동 거리를 게임 영역 너비의 퍼센트로 변환
-        const deltaPercent = (deltaX / gameAreaBounds.width) * 100;
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm font-bold">친구 랭킹</div>
+            <div class="text-xs text-blue-600">모두 보기</div>
+          </div>
+          
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="text-yellow-500 font-bold mr-2">1</div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">👨‍🎓</div>
+                <div class="text-xs">개발왕김코딩</div>
+              </div>
+              <div class="text-xs">Lv.5</div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="text-gray-400 font-bold mr-2">2</div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">👩‍💻</div>
+                <div class="text-xs">자바의정석</div>
+              </div>
+              <div class="text-xs">Lv.4</div>
+            </div>
+            
+            <div class="flex items-center justify-between bg-blue-50 p-1 rounded">
+              <div class="flex items-center">
+                <div class="text-blue-500 font-bold mr-2">3</div>
+                <div class="w-8 h-8 bg-blue-200 rounded-full mr-2 flex items-center justify-center">👨‍💻</div>
+                <div class="text-xs font-medium">나</div>
+              </div>
+              <div class="text-xs">Lv.3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 상점 탭 -->
+      <div id="shopTab" class="tab-content p-4 hidden">
+        <div class="flex justify-between items-center mb-4">
+          <div class="text-lg font-bold">상점</div>
+          <div class="flex items-center bg-yellow-100 px-3 py-1 rounded-full">
+            <span class="mr-1">💰</span>
+            <span id="shopGold">85</span>
+          </div>
+        </div>
         
-        // 바구니 위치 업데이트
-        basketPosition = Math.max(0, Math.min(90, basketPosition + deltaPercent));
-        basketElement.style.left = `${basketPosition}%`;
+        <div class="space-y-3">
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">☕</div>
+                <div>
+                  <div class="font-bold text-sm">맥심 커피</div>
+                  <div class="text-xs text-gray-500">지능 +5</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="10" data-stat="intelligence" data-value="5">
+                10 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🏋️‍♂️</div>
+                <div>
+                  <div class="font-bold text-sm">헬스장 1일 이용권</div>
+                  <div class="text-xs text-gray-500">체력 +8, 지능 -2</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="15" data-stat="strength" data-value="8">
+                15 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">📱</div>
+                <div>
+                  <div class="font-bold text-sm">중고 아이폰 SE</div>
+                  <div class="text-xs text-gray-500">지능 +10, 체력 -3</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="50" data-stat="intelligence" data-value="10">
+                50 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🍕</div>
+                <div>
+                  <div class="font-bold text-sm">도미노 피자</div>
+                  <div class="text-xs text-gray-500">체력 +5, 창의력 +3</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="25" data-stat="strength" data-value="5">
+                25 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🎨</div>
+                <div>
+                  <div class="font-bold text-sm">아이패드 드로잉 앱</div>
+                  <div class="text-xs text-gray-500">창의력 +12</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="35" data-stat="creativity" data-value="12">
+                35 골드
+              </button>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">🧠</div>
+                <div>
+                  <div class="font-bold text-sm">알고리즘 문제집</div>
+                  <div class="text-xs text-gray-500">지능 +15, 창의력 +5</div>
+                </div>
+              </div>
+              <button class="shop-item bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded" data-price="60" data-stat="intelligence" data-value="15">
+                60 골드
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 프로필 탭 -->
+      <div id="profileTab" class="tab-content p-4 hidden">
+        <div class="bg-blue-50 p-4 rounded-lg shadow mb-4 text-center">
+          <div class="text-6xl mb-2">👨‍💻</div>
+          <div class="text-lg font-bold">레벨 <span id="profileLevel">3</span></div>
+          <div class="text-xs text-gray-500 mt-1">목표 달성 현황</div>
+        </div>
         
-        e.preventDefault(); // 기본 동작 방지
-      });
-      
-      document.addEventListener('touchend', function() {
-        isDragging = false;
-        basketElement.classList.remove('grabbing');
-      });
-      
-      document.addEventListener('touchcancel', function() {
-        isDragging = false;
-        basketElement.classList.remove('grabbing');
-      });
-      
-      // 마우스 이벤트 (PC)
-      basketElement.addEventListener('mousedown', function(e) {
-        if (!appleGameActive) return;
-        isDragging = true;
-        lastMouseX = e.clientX;
-        basketElement.classList.add('grabbing');
-        e.preventDefault(); // 기본 동작 방지
-      });
-      
-      document.addEventListener('mousemove', function(e) {
-        if (!isDragging || !appleGameActive) return;
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-blue-600" id="profileDays">7</div>
+              <div class="text-xs text-gray-500">연속 인증</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-green-600">87</div>
+              <div class="text-xs text-gray-500">인증 성공</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-red-600">3</div>
+              <div class="text-xs text-gray-500">인증 실패</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-center">
+              <div class="text-lg font-bold text-purple-600">2025.03.14</div>
+              <div class="text-xs text-gray-500">목표 시작일</div>
+            </div>
+          </div>
+        </div>
         
-        const gameAreaBounds = gameArea.getBoundingClientRect();
-        const deltaX = e.clientX - lastMouseX;
-        lastMouseX = e.clientX;
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="text-sm font-bold mb-3">현재 능력치</div>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>지능</span>
+                <span><span id="profileIntelligence">50</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="profileIntelligenceBar" class="progress-fill bg-blue-500" style="width: 50%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>체력</span>
+                <span><span id="profileStrength">35</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="profileStrengthBar" class="progress-fill bg-green-500" style="width: 35%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>창의력</span>
+                <span><span id="profileCreativity">42</span>/100</span>
+              </div>
+              <div class="progress-bar">
+                <div id="profileCreativityBar" class="progress-fill bg-purple-500" style="width: 42%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
         
-        // 이동 거리를 게임 영역 너비의 퍼센트로 변환
-        const deltaPercent = (deltaX / gameAreaBounds.width) * 100;
+        <div class="bg-white rounded-lg p-4 shadow mb-4">
+          <div class="text-sm font-bold mb-3">통계 분석</div>
+          <div class="space-y-2 text-xs">
+            <div class="bg-gray-50 p-2 rounded-lg">
+              <div class="font-bold mb-1">지난 주 vs 이번 주</div>
+              <div>인증률 85% → 95% (+10%)</div>
+              <div>평균 능력치 상승 4.3 → 5.8</div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded-lg">
+              <div class="font-bold mb-1">동일 목표 유저 비교</div>
+              <div>상위 15% (최근 능력치 상승률)</div>
+              <div>상위 25% (누적 인증 횟수)</div>
+            </div>
+          </div>
+        </div>
         
-        // 바구니 위치 업데이트
-        basketPosition = Math.max(0, Math.min(90, basketPosition + deltaPercent));
-        basketElement.style.left = `${basketPosition}%`;
-      });
+        <div class="bg-blue-50 p-4 rounded-lg shadow text-center mb-20">
+          <div class="text-sm font-bold mb-2">120일 후 직업 예측</div>
+          <div class="text-xl font-bold text-blue-600 mb-1">
+            네카라쿠배 개발자
+          </div>
+          <div class="text-xs text-gray-600">
+            현재 추세 기준: 지능 74%, 체력 52%, 창의력 68%
+          </div>
+        </div>
+      </div>
       
-      document.addEventListener('mouseup', function() {
-        isDragging = false;
-        basketElement.classList.remove('grabbing');
-      });
+      <!-- 카메라 화면 -->
+      <div id="cameraTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">인증 사진 촬영</div>
+        <div class="relative bg-black rounded-lg mb-4 overflow-hidden">
+          <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
+            <div id="cameraViewfinder" class="text-6xl">📷</div>
+            <div id="cameraOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none"></div>
+          </div>
+          <button id="captureBtn" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
+            <div class="w-14 h-14 rounded-full bg-red-500"></div>
+          </button>
+        </div>
+        <div class="text-sm text-center text-gray-500 mb-4">
+          오늘의 코딩 공부 인증 사진을 찍어주세요
+        </div>
+        <button id="cancelCameraBtn" class="bg-gray-500 text-white font-bold py-3 rounded-lg w-full">
+          취소하기
+        </button>
+      </div>
       
-      document.addEventListener('mouseleave', function() {
-        isDragging = false;
-        basketElement.classList.remove('grabbing');
-      });
+      <!-- 인증 완료 화면 -->
+      <div id="checkInCompleteTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">인증 완료!</div>
+        <div class="bg-green-50 p-4 rounded-lg shadow mb-4">
+          <div id="motivationMessage" class="text-center text-base text-green-700 font-medium mb-4">
+            좋아요! 오늘도 한 걸음 더 성장했어요!
+          </div>
+          <div class="flex items-center justify-center text-5xl mb-4">🎉</div>
+          <div class="flex justify-center items-center text-center bg-white p-3 rounded-lg shadow-sm">
+            <span class="mr-3 text-base">보상:</span>
+            <span class="flex items-center text-yellow-500 text-lg font-bold">
+              <span class="mr-2">💰</span> 
+              <span>10 골드</span>
+            </span>
+          </div>
+        </div>
+        <button id="checkInDoneBtn" class="bg-blue-600 text-white font-bold py-3 rounded-lg w-full">
+          확인
+        </button>
+      </div>
       
-      // 기존 사과 게임 뒤로가기/다시하기 버튼 이벤트 리스너 유지
-      document.getElementById('appleBackBtn').addEventListener('click', () => {
-        // 게임 중이라면 종료
-        if (appleGameActive) {
-          clearInterval(gameInterval);
-        }
-        
-        switchTab('homeTab');
-      });
-      
-      document.getElementById('applePlayAgainBtn').addEventListener('click', () => {
-        // 광고 시청 후 다시하기
-        watchAd(() => {
-          initAppleGame();
-        });
-      });
-    });
-  </script>
-</body>
-</html>
+      <!-- 광고 시청 완료 / 게임 선택 화면 -->
+      <div id="adCompleteTab" class="tab-content p-4 hidden">
+        <div class="text-lg font-bold mb-3 text-center">광고 시청 완료!</div>
+        <div class="
