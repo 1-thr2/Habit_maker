@@ -1,46 +1,32 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <!-- 기존 헤더 부분은 그대로 유지합니다 -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>목표 달성 or Die</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- 기존 코드 그대로 유지 -->
+  <!-- CSS 부분에 추가 -->
   <style>
-    /* 기존 스타일 유지 */
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+    /* 기존 스타일 그대로 유지하고 아래 스타일 추가 */
     
-    /* 기존 스타일 코드는 동일하게 유지합니다 */
-    /* CSS 생략 (기존 CSS 유지) */
-    
-    /* 드래그 가능한 바구니를 위한 추가 스타일 */
-    .draggable-basket {
+    /* 바구니 드래그 가능 스타일 */
+    .draggable {
       cursor: grab;
-      touch-action: none; /* 터치 이벤트 핸들링을 위해 브라우저 기본 터치 동작 비활성화 */
-      user-select: none; /* 텍스트 선택 방지 */
-      -webkit-user-select: none;
-      position: absolute;
-      bottom: 0;
-      z-index: 10;
+      user-select: none;
+      touch-action: none;
     }
     
-    .draggable-basket:active {
+    .draggable:active {
       cursor: grabbing;
     }
     
-    /* 게임 영역에 대한 스타일 수정 */
-    .game-area-container {
-      position: relative;
-      touch-action: none; /* 전체 게임 영역도 기본 터치 동작 비활성화 */
-      overflow: hidden;
+    /* 게임 컨트롤 버튼 숨김 */
+    .controls-hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <!-- 기존 HTML 구조 유지 -->
-  <!-- 여기서는 변경이 필요한 사과 게임 부분만 수정합니다 -->
+  <!-- 기존 HTML 코드는 그대로 유지하되 아래 부분만 수정 -->
   
-  <!-- 사과 게임 화면 -->
+  <!-- 사과 게임 화면에서 컨트롤 버튼 제거 -->
   <div id="appleGameTab" class="tab-content p-4 hidden">
     <div class="text-lg font-bold mb-3 text-center">사과 게임</div>
     <div class="bg-red-50 p-4 rounded-lg shadow">
@@ -48,13 +34,21 @@
         사과를 받고 벌레는 피하세요! 최대 50골드!
       </div>
       
-      <div class="relative h-60 bg-blue-50 rounded-lg mb-4 overflow-hidden border-2 border-blue-100 game-area-container">
+      <div class="relative h-60 bg-blue-50 rounded-lg mb-4 overflow-hidden border-2 border-blue-100">
         <div id="appleGameArea" class="absolute inset-0">
           <!-- 게임 요소들이 여기에 추가됩니다 -->
-          <div id="gameBasket" class="absolute bottom-0 text-3xl draggable-basket" style="left: 45%;">🧺</div>
+          <div id="gameBasket" class="absolute bottom-0 text-3xl draggable" style="left: 45%;">🧺</div>
         </div>
         
-        <!-- 좌우 이동 버튼 제거됨 -->
+        <!-- 게임 컨트롤 버튼 제거 -->
+        <!-- <div id="gameControlsOverlay" class="absolute inset-x-0 bottom-0 h-12 flex justify-between items-center z-10 px-4 controls-hidden">
+          <button id="moveLeftBtn" class="bg-blue-500 bg-opacity-70 text-white h-10 w-10 rounded-full flex items-center justify-center text-xl">
+            ←
+          </button>
+          <button id="moveRightBtn" class="bg-blue-500 bg-opacity-70 text-white h-10 w-10 rounded-full flex items-center justify-center text-xl">
+            →
+          </button>
+        </div> -->
         
         <div id="gameTimer" class="absolute top-2 right-2 bg-white bg-opacity-70 text-xs font-bold px-2 py-1 rounded-full">
           30초
@@ -63,8 +57,7 @@
         <div id="gameOverlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
           <div class="bg-white p-4 rounded-lg text-center">
             <div class="text-xl font-bold mb-2">준비 완료!</div>
-            <div class="text-sm mb-3">사과를 받고 벌레는 피하세요</div>
-            <div class="text-xs mb-3 text-gray-600">바구니를 좌우로 슬라이드하여 이동시키세요!</div>
+            <div class="text-sm mb-3">화면을 슬라이드해서 바구니를 움직이세요</div>
             <button id="startGameBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
               게임 시작!
             </button>
@@ -107,13 +100,11 @@
     </div>
   </div>
   
-  <!-- 나머지 HTML 코드 유지 -->
-  
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // 기존 코드 유지 (탭 전환, 점수 계산 등)
+      // 기존 코드 유지
       
-      // 변경할 부분: 사과 게임 관련 코드
+      // 사과 게임 관련 코드 수정
       let appleScore = 0;
       let bugPenalty = 0;
       let appleGold = 0;
@@ -124,16 +115,11 @@
       const basketWidth = 10; // 바구니 너비 (%)
       const basketElement = document.getElementById('gameBasket');
       const gameArea = document.getElementById('appleGameArea');
-      const gameAreaContainer = gameArea.parentElement;
       const gameWidth = 100; // 게임 영역 너비 (%)
       
-      // 바구니 드래그 관련 변수
-      let isDragging = false;
-      let startX = 0;
-      let startLeft = 0;
-      
+      // 기존 사과 게임 초기화 함수 - 그대로 유지
       function initAppleGame() {
-        // 게임 초기화 (기존 코드)
+        // 게임 초기화
         appleScore = 0;
         bugPenalty = 0;
         appleGold = 0;
@@ -142,94 +128,41 @@
         basketPosition = 45;
         basketElement.style.left = `${basketPosition}%`;
         
-        // UI 초기화 (기존 코드)
+        // UI 초기화
         document.getElementById('appleScore').textContent = appleScore;
         document.getElementById('bugPenalty').textContent = bugPenalty;
         document.getElementById('appleGold').textContent = appleGold;
         document.getElementById('gameTimer').textContent = `${gameTimeLeft}초`;
         document.getElementById('appleGameResult').classList.add('hidden');
         
-        // 게임 요소 초기화 (기존 코드)
+        // 게임 요소 초기화
         const items = document.querySelectorAll('.falling-item');
         items.forEach(item => item.remove());
         
-        // 버튼 상태 초기화 (기존 코드)
+        // 버튼 상태 초기화
         document.getElementById('appleCashOutBtn').classList.add('hidden');
         document.getElementById('applePlayAgainBtn').classList.add('hidden');
         
-        // 게임 준비 오버레이 표시 (기존 코드)
+        // 게임 준비 오버레이 표시
         document.getElementById('gameOverlay').classList.remove('hidden');
       }
       
-      // 드래그 이벤트 설정 (새로운 코드)
-      function setupDraggableBasket() {
-        // 마우스 이벤트
-        basketElement.addEventListener('mousedown', startDrag);
+      // 게임 시작 버튼
+      document.getElementById('startGameBtn').addEventListener('click', function() {
+        // 게임 준비 오버레이 숨기기
+        document.getElementById('gameOverlay').classList.add('hidden');
         
-        // 터치 이벤트
-        basketElement.addEventListener('touchstart', startDrag, { passive: false });
+        // 게임 활성화
+        appleGameActive = true;
         
-        // 게임 영역 전체에서 드래그 가능하도록 이벤트 설정
-        gameAreaContainer.addEventListener('mousemove', drag);
-        gameAreaContainer.addEventListener('touchmove', drag, { passive: false });
+        // 타이머 시작
+        startGameTimer();
         
-        // 드래그 종료 이벤트
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchend', endDrag);
-      }
+        // 아이템 생성 시작
+        gameInterval = setInterval(generateFallingItem, 800); // 0.8초마다 아이템 생성
+      });
       
-      function startDrag(e) {
-        e.preventDefault(); // 기본 동작 방지
-        isDragging = true;
-        
-        // 마우스 또는 터치의 시작 위치 저장
-        if (e.type === 'touchstart') {
-          startX = e.touches[0].clientX;
-        } else {
-          startX = e.clientX;
-        }
-        
-        // 현재 바구니 위치 저장
-        startLeft = basketPosition;
-        
-        // 커서 스타일 변경
-        basketElement.style.cursor = 'grabbing';
-      }
-      
-      function drag(e) {
-        if (!isDragging) return;
-        e.preventDefault(); // 기본 동작 방지
-        
-        // 현재 마우스/터치 위치
-        let currentX;
-        if (e.type === 'touchmove') {
-          currentX = e.touches[0].clientX;
-        } else {
-          currentX = e.clientX;
-        }
-        
-        // 이동 거리 계산
-        const deltaX = currentX - startX;
-        
-        // 게임 영역의 너비를 기준으로 % 단위 변환
-        const gameAreaWidth = gameAreaContainer.clientWidth;
-        const deltaPercent = (deltaX / gameAreaWidth) * 100;
-        
-        // 새로운 위치 계산 (경계 제한)
-        let newPosition = startLeft + deltaPercent;
-        newPosition = Math.max(5, Math.min(90, newPosition)); // 5% ~ 90% 범위로 제한
-        
-        // 바구니 위치 업데이트
-        basketPosition = newPosition;
-        basketElement.style.left = `${basketPosition}%`;
-      }
-      
-      function endDrag() {
-        isDragging = false;
-        basketElement.style.cursor = 'grab';
-      }
-      
-      // 기존 게임 관련 함수들
+      // 기존 함수들 - 그대로 유지
       function startGameTimer() {
         const timerInterval = setInterval(() => {
           gameTimeLeft--;
@@ -336,22 +269,86 @@
         });
       }
       
-      // 게임 시작 버튼
-      document.getElementById('startGameBtn').addEventListener('click', function() {
-        // 게임 준비 오버레이 숨기기
-        document.getElementById('gameOverlay').classList.add('hidden');
-        
-        // 게임 활성화
-        appleGameActive = true;
-        
-        // 타이머 시작
-        startGameTimer();
-        
-        // 아이템 생성 시작
-        gameInterval = setInterval(generateFallingItem, 800); // 0.8초마다 아이템 생성
+      // 이동 버튼 이벤트 리스너 제거하고 새로운 드래그 이벤트 리스너 추가
+      
+      // 바구니 드래그 기능 구현
+      let isDragging = false;
+      let lastTouchX = 0;
+      let lastMouseX = 0;
+      const gameAreaBounds = gameArea.getBoundingClientRect();
+      
+      // 터치 이벤트 (모바일)
+      basketElement.addEventListener('touchstart', function(e) {
+        if (!appleGameActive) return;
+        isDragging = true;
+        lastTouchX = e.touches[0].clientX;
+        basketElement.classList.add('grabbing');
+        e.preventDefault(); // 기본 동작 방지
       });
       
-      // 사과 게임 뒤로가기 버튼
+      document.addEventListener('touchmove', function(e) {
+        if (!isDragging || !appleGameActive) return;
+        
+        const gameAreaBounds = gameArea.getBoundingClientRect();
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - lastTouchX;
+        lastTouchX = touch.clientX;
+        
+        // 이동 거리를 게임 영역 너비의 퍼센트로 변환
+        const deltaPercent = (deltaX / gameAreaBounds.width) * 100;
+        
+        // 바구니 위치 업데이트
+        basketPosition = Math.max(0, Math.min(90, basketPosition + deltaPercent));
+        basketElement.style.left = `${basketPosition}%`;
+        
+        e.preventDefault(); // 기본 동작 방지
+      });
+      
+      document.addEventListener('touchend', function() {
+        isDragging = false;
+        basketElement.classList.remove('grabbing');
+      });
+      
+      document.addEventListener('touchcancel', function() {
+        isDragging = false;
+        basketElement.classList.remove('grabbing');
+      });
+      
+      // 마우스 이벤트 (PC)
+      basketElement.addEventListener('mousedown', function(e) {
+        if (!appleGameActive) return;
+        isDragging = true;
+        lastMouseX = e.clientX;
+        basketElement.classList.add('grabbing');
+        e.preventDefault(); // 기본 동작 방지
+      });
+      
+      document.addEventListener('mousemove', function(e) {
+        if (!isDragging || !appleGameActive) return;
+        
+        const gameAreaBounds = gameArea.getBoundingClientRect();
+        const deltaX = e.clientX - lastMouseX;
+        lastMouseX = e.clientX;
+        
+        // 이동 거리를 게임 영역 너비의 퍼센트로 변환
+        const deltaPercent = (deltaX / gameAreaBounds.width) * 100;
+        
+        // 바구니 위치 업데이트
+        basketPosition = Math.max(0, Math.min(90, basketPosition + deltaPercent));
+        basketElement.style.left = `${basketPosition}%`;
+      });
+      
+      document.addEventListener('mouseup', function() {
+        isDragging = false;
+        basketElement.classList.remove('grabbing');
+      });
+      
+      document.addEventListener('mouseleave', function() {
+        isDragging = false;
+        basketElement.classList.remove('grabbing');
+      });
+      
+      // 기존 사과 게임 뒤로가기/다시하기 버튼 이벤트 리스너 유지
       document.getElementById('appleBackBtn').addEventListener('click', () => {
         // 게임 중이라면 종료
         if (appleGameActive) {
@@ -361,33 +358,12 @@
         switchTab('homeTab');
       });
       
-      // 사과 게임 다시하기 버튼
       document.getElementById('applePlayAgainBtn').addEventListener('click', () => {
         // 광고 시청 후 다시하기
         watchAd(() => {
           initAppleGame();
         });
       });
-      
-      // 사과 게임 탭이 활성화될 때 드래그 이벤트 설정
-      document.getElementById('appleGameBtn').addEventListener('click', () => {
-        // 기존 코드
-        tabContents.forEach(content => {
-          content.classList.add('hidden');
-          content.classList.remove('active');
-        });
-        
-        document.getElementById('appleGameTab').classList.remove('hidden');
-        document.getElementById('appleGameTab').classList.add('active');
-        
-        // 드래그 이벤트 설정 (추가)
-        setupDraggableBasket();
-        
-        // 사과 게임 초기화
-        initAppleGame();
-      });
-      
-      // 나머지 기존 코드 유지
     });
   </script>
 </body>
