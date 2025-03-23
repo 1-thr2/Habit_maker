@@ -968,7 +968,64 @@
     </div>
   </div>
   
-  <script>
+      <script>
+      // 간단한 오디오 효과음 생성 함수 (AudioContext API 사용)
+      let audioContext;
+      
+      function playTone(frequency, duration, volume = 0.5) {
+        try {
+          // AudioContext 초기화 (처음 사용할 때)
+          if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          
+          // 오실레이터 생성
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          // 오실레이터 설정
+          oscillator.type = 'sine';
+          oscillator.frequency.value = frequency;
+          
+          // 볼륨 설정
+          gainNode.gain.value = volume;
+          
+          // 연결 및 재생
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          oscillator.start();
+          
+          // 지정된 시간 후 정지
+          setTimeout(() => {
+            oscillator.stop();
+          }, duration);
+        } catch (e) {
+          console.log("오디오 재생 오류:", e);
+        }
+      }
+      
+      // 사과 획득 효과음
+      function playAppleSound() {
+        if (isMuted) return;
+        playTone(440, 150, 0.3); // A4 음, 짧게
+        setTimeout(() => playTone(880, 80, 0.2), 150); // A5 음, 더 짧게
+      }
+      
+      // 게임 오버 효과음
+      function playGameOverSound() {
+        if (isMuted) return;
+        playTone(220, 300, 0.4); // 낮은 음
+        setTimeout(() => playTone(196, 500, 0.4), 300); // 더 낮은 음
+      }
+      
+      // 성공 효과음
+      function playSuccessSound() {
+        if (isMuted) return;
+        playTone(523, 100, 0.3); // C5
+        setTimeout(() => playTone(659, 100, 0.3), 100); // E5
+        setTimeout(() => playTone(784, 300, 0.3), 200); // G5
+      }
+    </script>
     document.addEventListener('DOMContentLoaded', function() {
       // 탭 전환 관련 변수
       const tabBtns = document.querySelectorAll('.tab-btn');
@@ -1533,17 +1590,12 @@
         // 음소거 버튼 아이콘 변경
         this.textContent = isMuted ? '🔇' : '🔊';
         
-        // 모든 오디오 음소거 상태 설정
-        bgMusic.muted = isMuted;
-        appleSound.muted = isMuted;
-        gameOverSound.muted = isMuted;
+        // 배경 음악 음소거 설정
+        if (bgMusic) bgMusic.muted = isMuted;
         
-        // 효과음 적용
+        // 효과음 적용 (음소거 토글 시 짧은 음)
         if (!isMuted) {
-          // 음소거 해제 시 짧은 효과음
-          const shortBeep = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_9769a76aa1.mp3?filename=notification-sound-7062.mp3');
-          shortBeep.volume = 0.3;
-          shortBeep.play();
+          playTone(660, 80, 0.2);
         }
       });
       
@@ -1720,17 +1772,11 @@
             clearInterval(gameInterval);
             clearInterval(collisionInterval);
             
-            // 성공 효과음
-            if (!isMuted) {
-              bgMusic.pause();
-              try {
-                const successSound = new Audio('https://www.soundjay.com/buttons/sounds/button-25.mp3');
-                successSound.volume = 0.7;
-                successSound.play().catch(e => console.log("성공 효과음 오류:", e));
-              } catch (e) {
-                console.log("성공 효과음 오류:", e);
-              }
-            }
+            // 배경음악 정지
+            if (bgMusic) bgMusic.pause();
+            
+            // 성공 효과음 (내장 효과음 사용)
+            playSuccessSound();
             
             endGame();
           }
@@ -1805,20 +1851,8 @@
               appleScore++;
               document.getElementById('appleScore').textContent = appleScore;
               
-              // 사과 획득 효과음 재생
-              if (!isMuted) {
-                try {
-                  appleSound.currentTime = 0;
-                  appleSound.volume = 0.7;
-                  let playPromise = appleSound.play();
-                  
-                  if (playPromise !== undefined) {
-                    playPromise.catch(e => console.log("효과음 재생 실패:", e));
-                  }
-                } catch (e) {
-                  console.log("효과음 오류:", e);
-                }
-              }
+              // 사과 획득 효과음 재생 (내장 효과음 사용)
+              playAppleSound();
               
               // 점수 증가 애니메이션
               const scoreElement = document.getElementById('appleScore');
@@ -1837,20 +1871,11 @@
             } else {
               // 벌레 먹음 - 게임 즉시 종료!
               
-              // 게임 오버 효과음 재생
-              if (!isMuted) {
-                // 배경음악 정지
-                bgMusic.pause();
-                
-                // 게임오버 효과음 재생
-                try {
-                  gameOverSound.currentTime = 0;
-                  gameOverSound.volume = 0.8;
-                  gameOverSound.play().catch(e => console.log("게임오버 효과음 재생 실패:", e));
-                } catch (e) {
-                  console.log("게임오버 효과음 오류:", e);
-                }
-              }
+              // 배경음악 정지
+              if (bgMusic) bgMusic.pause();
+              
+              // 게임 오버 효과음 재생 (내장 효과음 사용)
+              playGameOverSound();
               
               // 벌레 사라지는 효과 (즉시 더 투명하게 시작)
               item.style.opacity = "0";
