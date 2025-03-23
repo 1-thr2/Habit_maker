@@ -281,6 +281,13 @@
     #gameBasket {
       cursor: grab;
       touch-action: none; /* 터치 스크롤 비활성화 */
+      user-select: none; /* 선택 방지 */
+      -webkit-user-select: none;
+      position: absolute;
+      bottom: 0;
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+      transition: left 0.1s ease-out;
     }
     
     #gameBasket:active {
@@ -822,10 +829,8 @@
           <div class="relative h-60 bg-blue-50 rounded-lg mb-4 overflow-hidden border-2 border-blue-100">
             <div id="appleGameArea" class="absolute inset-0">
               <!-- 게임 요소들이 여기에 추가됩니다 -->
-              <div id="gameBasket" class="absolute bottom-0 text-3xl" style="left: 45%;">🧺</div>
+              <div id="gameBasket" style="left: 45%;">🧺</div>
             </div>
-            
-            <!-- 게임 컨트롤 버튼 제거 -->
             
             <div id="gameTimer" class="absolute top-2 right-2 bg-white bg-opacity-70 text-xs font-bold px-2 py-1 rounded-full">
               30초
@@ -1476,7 +1481,7 @@
       const basketWidth = 10; // 바구니 너비 (%)
       const basketElement = document.getElementById('gameBasket');
       const gameArea = document.getElementById('appleGameArea');
-      const gameWidth = 100; // 게임 영역 너비 (%)
+      let collisionInterval;
       
       // 바구니 드래그 관련 변수
       let isDragging = false;
@@ -1484,9 +1489,9 @@
       let lastX = 0;
       
       function initAppleGame() {
-        // 이전에 실행 중이던 인터벌 정리
+        // 이전 게임에서 실행 중이던 인터벌 정리
         if (gameInterval) clearInterval(gameInterval);
-        if (gameUpdateInterval) clearInterval(gameUpdateInterval);
+        if (collisionInterval) clearInterval(collisionInterval);
         
         // 게임 초기화
         appleScore = 0;
@@ -1515,201 +1520,29 @@
         
         // 게임 준비 오버레이 표시
         document.getElementById('gameOverlay').classList.remove('hidden');
+        
+        // 바구니 드래그 기능 설정
+        setupBasketDrag();
       }
       
-      // 게임 시작 버튼
-      document.getElementById('startGameBtn').addEventListener('click', function() {
-        // 게임 준비 오버레이 숨기기
-        document.getElementById('gameOverlay').classList.add('hidden');
-        
-        // 게임 활성화
-        appleGameActive = true;
-        
-        // 타이머 시작
-        startGameTimer();
-        
-        // 아이템 생성 시작 (0.8초마다로 조정 - 성능 향상 및 난이도 조절)
-        gameInterval = setInterval(generateFallingItem, 800);
-        
-        // 충돌 감지 업데이트 시작 (약 30fps - 성능 최적화)
-        gameUpdateInterval = setInterval(checkCollisions, 33);
-      });
-      
-      function startGameTimer() {
-        const timerInterval = setInterval(() => {
-          gameTimeLeft--;
-          document.getElementById('gameTimer').textContent = `${gameTimeLeft}초`;
-          
-          // 시간이 다 되면 게임 종료
-          if (gameTimeLeft <= 0) {
-            clearInterval(timerInterval);
-            clearInterval(gameInterval);
-            endGame();
-          }
-        }, 1000);
-      }
-      
-      function endGame() {
-        appleGameActive = false;
-        
-        // 업데이트 중지
-        clearInterval(gameUpdateInterval);
-        
-        // 골드 계산 (사과 1개당 3골드, 벌레 1개당 -2골드)
-        const totalScore = Math.max(0, appleScore - bugPenalty);
-        appleGold = totalScore * 3;
-        
-        // 상금 한도 설정
-        appleGold = Math.min(appleGold, 50);
-        
-        // UI 업데이트
-        document.getElementById('appleGold').textContent = appleGold;
-        document.getElementById('appleGameResult').classList.remove('hidden');
-        document.getElementById('finalAppleGold').textContent = appleGold;
-        
-        // 골드 증가
-        const gold = document.getElementById('gold');
-        gold.textContent = parseInt(gold.textContent) + appleGold;
-        
-        // 알림 표시
-        showToast(`${appleGold} 골드가 지급되었습니다!`, 'success');
-        
-        // 다시하기 버튼 표시
-        document.getElementById('applePlayAgainBtn').classList.remove('hidden');
-      }
-      
-      let gameUpdateInterval;
-      
-      function generateFallingItem() {
-        if (!appleGameActive) return;
-        
-        const gameArea = document.getElementById('appleGameArea');
-        
-        // 한번에 1~2개의 아이템 생성 (난이도 조정)
-        const itemCount = Math.floor(Math.random() * 2) + 1;
-        
-        for (let i = 0; i < itemCount; i++) {
-          const item = document.createElement('div');
-          
-          // 벌레 확률: 70% 사과, 30% 벌레
-          const isApple = Math.random() < 0.7;
-          item.textContent = isApple ? '🍎' : '🐛';
-          item.className = 'falling-item text-2xl';
-          item.dataset.type = isApple ? 'apple' : 'bug';
-          
-          // 랜덤 위치 (좌우)
-          const left = Math.floor(Math.random() * 85) + 5; // 5% ~ 90%
-          item.style.left = `${left}%`;
-          
-          // 랜덤 속도 (아래로 떨어지는 시간)
-          const fallSpeed = Math.random() * 1 + 1.5; // 1.5초 ~ 2.5초
-          item.style.animationDuration = `${fallSpeed}s`;
-          
-          gameArea.appendChild(item);
-          
-          // 바닥에 닿으면 제거
-          item.addEventListener('animationend', () => {
-            if (!item.dataset.collected) { // 아직 수집되지 않은 경우에만
-              item.remove();
-            }
-          });
-        }
-      }
-      
-      // 충돌 감지를 실시간으로 수행하는 함수
-      function checkCollisions() {
-        if (!appleGameActive) return;
-        
-        const items = document.querySelectorAll('.falling-item');
-        
-        // 바구니 위치 계산 (% 단위를 픽셀로 변환)
-        const gameAreaRect = gameArea.getBoundingClientRect();
-        const basketLeftPx = gameAreaRect.left + (basketPosition / 100) * gameAreaRect.width;
-        const basketRightPx = basketLeftPx + (basketWidth / 100) * gameAreaRect.width;
-        const basketTopPx = gameAreaRect.bottom - 30; // 바구니 상단 위치 추정
-        const basketBottomPx = gameAreaRect.bottom;
-        
-        items.forEach(item => {
-          // 이미 처리된 아이템은 건너뜀
-          if (item.dataset.collected === "true") return;
-          
-          const itemRect = item.getBoundingClientRect();
-          
-          // 충돌 감지: 단순화된 방식
-          if (itemRect.right >= basketLeftPx && 
-              itemRect.left <= basketRightPx && 
-              itemRect.bottom >= basketTopPx && 
-              itemRect.top <= basketBottomPx) {
-            
-            // 처리된 것으로 표시
-            item.dataset.collected = "true";
-            
-            if (item.dataset.type === 'apple') {
-              // 사과 획득
-              appleScore++;
-              document.getElementById('appleScore').textContent = appleScore;
-              
-              // 점수 증가 애니메이션
-              const scoreElement = document.getElementById('appleScore');
-              scoreElement.classList.add('score-pop');
-              setTimeout(() => {
-                scoreElement.classList.remove('score-pop');
-              }, 500);
-              
-              // 사과 사라지는 효과
-              item.style.opacity = "0";
-              item.style.transform = "scale(0.5)";
-              setTimeout(() => {
-                item.remove();
-              }, 200);
-              
-            } else {
-              // 벌레 감점
-              bugPenalty++;
-              document.getElementById('bugPenalty').textContent = bugPenalty;
-              
-              // 감점 애니메이션
-              const penaltyElement = document.getElementById('bugPenalty');
-              penaltyElement.classList.add('penalty-shake');
-              setTimeout(() => {
-                penaltyElement.classList.remove('penalty-shake');
-              }, 300);
-              
-              // 바구니 흔들림 애니메이션
-              basketElement.classList.add('shake');
-              setTimeout(() => {
-                basketElement.classList.remove('shake');
-              }, 300);
-              
-              // 벌레 사라지는 효과
-              item.style.opacity = "0";
-              item.style.transform = "scale(0.5)";
-              setTimeout(() => {
-                item.remove();
-              }, 200);
-            }
-          }
-        });
-      }
-      }
-      
-      // 바구니 직접 드래그 기능 추가
-      
-      // 초기 설정 - 바구니 드래그 이벤트 등록
+      // 바구니 드래그 이벤트 설정
       function setupBasketDrag() {
-        // 마우스 이벤트
+        // 기존 이벤트 제거
+        basketElement.removeEventListener('mousedown', startDragging);
+        document.removeEventListener('mousemove', dragBasket);
+        document.removeEventListener('mouseup', stopDragging);
+        basketElement.removeEventListener('touchstart', startDragging);
+        document.removeEventListener('touchmove', dragBasket);
+        document.removeEventListener('touchend', stopDragging);
+        
+        // 새 이벤트 등록
         basketElement.addEventListener('mousedown', startDragging);
         document.addEventListener('mousemove', dragBasket);
         document.addEventListener('mouseup', stopDragging);
-        
-        // 터치 이벤트
         basketElement.addEventListener('touchstart', startDragging);
         document.addEventListener('touchmove', dragBasket);
         document.addEventListener('touchend', stopDragging);
       }
-      
-      // 게임 시작 시 드래그 기능 활성화
-      setupBasketDrag();
       
       // 드래그 시작
       function startDragging(e) {
@@ -1769,12 +1602,178 @@
         basketElement.style.cursor = 'grab';
       }
       
+      // 게임 시작 버튼
+      document.getElementById('startGameBtn').addEventListener('click', function() {
+        // 게임 준비 오버레이 숨기기
+        document.getElementById('gameOverlay').classList.add('hidden');
+        
+        // 게임 활성화
+        appleGameActive = true;
+        
+        // 타이머 시작
+        startGameTimer();
+        
+        // 아이템 생성 시작
+        gameInterval = setInterval(generateFallingItem, 800);
+        
+        // 충돌 감지 업데이트 시작
+        collisionInterval = setInterval(checkCollisions, 33);
+      });
+      
+      function startGameTimer() {
+        const timerInterval = setInterval(() => {
+          gameTimeLeft--;
+          document.getElementById('gameTimer').textContent = `${gameTimeLeft}초`;
+          
+          // 시간이 다 되면 게임 종료
+          if (gameTimeLeft <= 0) {
+            clearInterval(timerInterval);
+            clearInterval(gameInterval);
+            clearInterval(collisionInterval);
+            endGame();
+          }
+        }, 1000);
+      }
+      
+      function generateFallingItem() {
+        if (!appleGameActive) return;
+        
+        // 한번에 1~2개의 아이템 생성
+        const itemCount = Math.floor(Math.random() * 2) + 1;
+        
+        for (let i = 0; i < itemCount; i++) {
+          const item = document.createElement('div');
+          
+          // 벌레 확률: 70% 사과, 30% 벌레
+          const isApple = Math.random() < 0.7;
+          item.textContent = isApple ? '🍎' : '🐛';
+          item.className = 'falling-item text-2xl';
+          item.dataset.type = isApple ? 'apple' : 'bug';
+          
+          // 랜덤 위치 (좌우)
+          const left = Math.floor(Math.random() * 85) + 5; // 5% ~ 90%
+          item.style.left = `${left}%`;
+          
+          // 랜덤 속도 (아래로 떨어지는 시간)
+          const fallSpeed = Math.random() * 1 + 1.5; // 1.5초 ~ 2.5초
+          item.style.animationDuration = `${fallSpeed}s`;
+          
+          gameArea.appendChild(item);
+          
+          // 바닥에 닿으면 제거
+          item.addEventListener('animationend', () => {
+            if (!item.dataset.collected) { // 아직 수집되지 않은 경우에만
+              item.remove();
+            }
+          });
+        }
+      }
+      
+      // 충돌 감지 함수
+      function checkCollisions() {
+        if (!appleGameActive) return;
+        
+        const items = document.querySelectorAll('.falling-item');
+        const gameAreaRect = gameArea.getBoundingClientRect();
+        
+        // 바구니 위치 계산 (바구니 상단 부분에서 감지)
+        const basketLeft = basketPosition - basketWidth/2;
+        const basketRight = basketPosition + basketWidth/2;
+        const basketTop = 90; // 바구니 상단 위치 (%)
+        
+        items.forEach(item => {
+          // 이미 처리된 아이템인지 확인
+          if (item.dataset.collected === "true") return;
+          
+          // 아이템의 위치 계산
+          const itemRect = item.getBoundingClientRect();
+          const itemLeft = parseFloat(item.style.left);
+          const itemTop = (itemRect.top - gameAreaRect.top) / gameAreaRect.height * 100;
+          
+          // 바구니와 아이템 충돌 감지 (단순 위치 기반)
+          if (itemTop >= basketTop && itemLeft >= basketLeft && itemLeft <= basketRight) {
+            // 처리된 것으로 표시
+            item.dataset.collected = "true";
+            
+            if (item.dataset.type === 'apple') {
+              // 사과 획득
+              appleScore++;
+              document.getElementById('appleScore').textContent = appleScore;
+              
+              // 점수 증가 애니메이션
+              const scoreElement = document.getElementById('appleScore');
+              scoreElement.classList.add('score-pop');
+              setTimeout(() => {
+                scoreElement.classList.remove('score-pop');
+              }, 500);
+              
+              // 사과 사라지는 효과
+              item.style.opacity = "0";
+              item.style.transform = "scale(0.5)";
+              setTimeout(() => {
+                item.remove();
+              }, 200);
+            } else {
+              // 벌레 감점
+              bugPenalty++;
+              document.getElementById('bugPenalty').textContent = bugPenalty;
+              
+              // 감점 애니메이션
+              const penaltyElement = document.getElementById('bugPenalty');
+              penaltyElement.classList.add('penalty-shake');
+              setTimeout(() => {
+                penaltyElement.classList.remove('penalty-shake');
+              }, 300);
+              
+              // 바구니 흔들림 애니메이션
+              basketElement.classList.add('shake');
+              setTimeout(() => {
+                basketElement.classList.remove('shake');
+              }, 300);
+              
+              // 벌레 사라지는 효과
+              item.style.opacity = "0";
+              item.style.transform = "scale(0.5)";
+              setTimeout(() => {
+                item.remove();
+              }, 200);
+            }
+          }
+        });
+      }
+      
+      function endGame() {
+        appleGameActive = false;
+        
+        // 골드 계산 (사과 1개당 3골드, 벌레 1개당 -2골드)
+        const totalScore = Math.max(0, appleScore - bugPenalty);
+        appleGold = totalScore * 3;
+        
+        // 상금 한도 설정
+        appleGold = Math.min(appleGold, 50);
+        
+        // UI 업데이트
+        document.getElementById('appleGold').textContent = appleGold;
+        document.getElementById('appleGameResult').classList.remove('hidden');
+        document.getElementById('finalAppleGold').textContent = appleGold;
+        
+        // 골드 증가
+        const gold = document.getElementById('gold');
+        gold.textContent = parseInt(gold.textContent) + appleGold;
+        
+        // 알림 표시
+        showToast(`${appleGold} 골드가 지급되었습니다!`, 'success');
+        
+        // 다시하기 버튼 표시
+        document.getElementById('applePlayAgainBtn').classList.remove('hidden');
+      }
+      
       // 사과 게임 뒤로가기 버튼
       document.getElementById('appleBackBtn').addEventListener('click', () => {
         // 게임 중이라면 종료
         if (appleGameActive) {
           clearInterval(gameInterval);
-          clearInterval(gameUpdateInterval);
+          clearInterval(collisionInterval);
         }
         
         switchTab('homeTab');
