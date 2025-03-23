@@ -112,7 +112,7 @@
     .falling-item {
       position: absolute;
       animation: falling linear forwards;
-      transition: opacity 0.2s, transform 0.2s;
+      transition: opacity 0.1s, transform 0.1s; /* 더 빠른 전환 효과 */
     }
     
     @keyframes falling {
@@ -1613,11 +1613,11 @@
         // 타이머 시작
         startGameTimer();
         
-        // 아이템 생성 시작
-        gameInterval = setInterval(generateFallingItem, 800);
+        // 아이템 생성 시작 (더 빠른 간격으로)
+        gameInterval = setInterval(generateFallingItem, 600); // 0.6초마다 아이템 생성
         
-        // 충돌 감지 업데이트 시작
-        collisionInterval = setInterval(checkCollisions, 33);
+        // 충돌 감지 업데이트 시작 (더 빠르게)
+        collisionInterval = setInterval(checkCollisions, 20);
       });
       
       function startGameTimer() {
@@ -1638,14 +1638,14 @@
       function generateFallingItem() {
         if (!appleGameActive) return;
         
-        // 한번에 1~2개의 아이템 생성
-        const itemCount = Math.floor(Math.random() * 2) + 1;
+        // 한번에 2~3개의 아이템 생성 (더 많이)
+        const itemCount = Math.floor(Math.random() * 2) + 2;
         
         for (let i = 0; i < itemCount; i++) {
           const item = document.createElement('div');
           
-          // 벌레 확률: 70% 사과, 30% 벌레
-          const isApple = Math.random() < 0.7;
+          // 벌레 비율 증가: 30% 사과, 70% 벌레
+          const isApple = Math.random() < 0.3;
           item.textContent = isApple ? '🍎' : '🐛';
           item.className = 'falling-item text-2xl';
           item.dataset.type = isApple ? 'apple' : 'bug';
@@ -1655,7 +1655,7 @@
           item.style.left = `${left}%`;
           
           // 랜덤 속도 (아래로 떨어지는 시간)
-          const fallSpeed = Math.random() * 1 + 1.5; // 1.5초 ~ 2.5초
+          const fallSpeed = Math.random() * 1 + 1.2; // 1.2초 ~ 2.2초 (약간 더 빠르게)
           item.style.animationDuration = `${fallSpeed}s`;
           
           gameArea.appendChild(item);
@@ -1679,7 +1679,7 @@
         // 바구니 위치 계산 (바구니 상단 부분에서 감지)
         const basketLeft = basketPosition - basketWidth/2;
         const basketRight = basketPosition + basketWidth/2;
-        const basketTop = 90; // 바구니 상단 위치 (%)
+        const basketTop = 85; // 바구니 상단 위치 (%)
         
         items.forEach(item => {
           // 이미 처리된 아이템인지 확인
@@ -1695,6 +1695,9 @@
             // 처리된 것으로 표시
             item.dataset.collected = "true";
             
+            // 즉시 아이템 애니메이션 중지 (떨어지는 것을 멈추고 사라지게)
+            item.style.animationPlayState = 'paused';
+            
             if (item.dataset.type === 'apple') {
               // 사과 획득
               appleScore++;
@@ -1707,12 +1710,13 @@
                 scoreElement.classList.remove('score-pop');
               }, 500);
               
-              // 사과 사라지는 효과
+              // 사과 사라지는 효과 (즉시 더 투명하게 시작)
               item.style.opacity = "0";
               item.style.transform = "scale(0.5)";
               setTimeout(() => {
                 item.remove();
-              }, 200);
+              }, 100); // 더 빠르게 제거
+              
             } else {
               // 벌레 감점
               bugPenalty++;
@@ -1731,12 +1735,12 @@
                 basketElement.classList.remove('shake');
               }, 300);
               
-              // 벌레 사라지는 효과
+              // 벌레 사라지는 효과 (즉시 더 투명하게 시작)
               item.style.opacity = "0";
               item.style.transform = "scale(0.5)";
               setTimeout(() => {
                 item.remove();
-              }, 200);
+              }, 100); // 더 빠르게 제거
             }
           }
         });
