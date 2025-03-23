@@ -904,9 +904,6 @@
         </div>
       </div>
       
-      <!-- 오디오 요소들 제거 -->
-      <!-- (더 이상 필요하지 않음) -->
-      
       <!-- 광고 시청 화면 -->
       <div id="adWatchTab" class="tab-content p-4 hidden">
         <div class="text-lg font-bold mb-3 text-center">광고 시청 중...</div>
@@ -955,64 +952,75 @@
     </div>
   </div>
   
-      <script>
-      // 간단한 오디오 효과음 생성 함수 (AudioContext API 사용)
-      let audioContext;
-      
-      function playTone(frequency, duration, volume = 0.5) {
-        try {
-          // AudioContext 초기화 (처음 사용할 때)
-          if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          }
-          
-          // 오실레이터 생성
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          // 오실레이터 설정
-          oscillator.type = 'sine';
-          oscillator.frequency.value = frequency;
-          
-          // 볼륨 설정
-          gainNode.gain.value = volume;
-          
-          // 연결 및 재생
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          oscillator.start();
-          
-          // 지정된 시간 후 정지
-          setTimeout(() => {
-            oscillator.stop();
-          }, duration);
-        } catch (e) {
-          console.log("오디오 재생 오류:", e);
+  <script>
+    // 간단한 오디오 효과음 생성 함수 (AudioContext API 사용)
+    let audioContext;
+    let isMuted = false;
+    
+    // beep 함수 - 간단한 효과음 재생
+    function beep(duration, frequency, volume) {
+      if (isMuted) return;
+      try {
+        playTone(frequency, duration, volume);
+      } catch (e) {
+        console.log("오디오 재생 오류:", e);
+      }
+    }
+    
+    function playTone(frequency, duration, volume = 0.5) {
+      try {
+        // AudioContext 초기화 (처음 사용할 때)
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
+        
+        // 오실레이터 생성
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // 오실레이터 설정
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        
+        // 볼륨 설정
+        gainNode.gain.value = volume;
+        
+        // 연결 및 재생
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.start();
+        
+        // 지정된 시간 후 정지
+        setTimeout(() => {
+          oscillator.stop();
+        }, duration);
+      } catch (e) {
+        console.log("오디오 재생 오류:", e);
       }
-      
-      // 사과 획득 효과음
-      function playAppleSound() {
-        if (isMuted) return;
-        playTone(440, 150, 0.3); // A4 음, 짧게
-        setTimeout(() => playTone(880, 80, 0.2), 150); // A5 음, 더 짧게
-      }
-      
-      // 게임 오버 효과음
-      function playGameOverSound() {
-        if (isMuted) return;
-        playTone(220, 300, 0.4); // 낮은 음
-        setTimeout(() => playTone(196, 500, 0.4), 300); // 더 낮은 음
-      }
-      
-      // 성공 효과음
-      function playSuccessSound() {
-        if (isMuted) return;
-        playTone(523, 100, 0.3); // C5
-        setTimeout(() => playTone(659, 100, 0.3), 100); // E5
-        setTimeout(() => playTone(784, 300, 0.3), 200); // G5
-      }
-    </script>
+    }
+    
+    // 사과 획득 효과음
+    function playAppleSound() {
+      if (isMuted) return;
+      playTone(440, 150, 0.3); // A4 음, 짧게
+      setTimeout(() => playTone(880, 80, 0.2), 150); // A5 음, 더 짧게
+    }
+    
+    // 게임 오버 효과음
+    function playGameOverSound() {
+      if (isMuted) return;
+      playTone(220, 300, 0.4); // 낮은 음
+      setTimeout(() => playTone(196, 500, 0.4), 300); // 더 낮은 음
+    }
+    
+    // 성공 효과음
+    function playSuccessSound() {
+      if (isMuted) return;
+      playTone(523, 100, 0.3); // C5
+      setTimeout(() => playTone(659, 100, 0.3), 100); // E5
+      setTimeout(() => playTone(784, 300, 0.3), 200); // G5
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 탭 전환 관련 변수
       const tabBtns = document.querySelectorAll('.tab-btn');
@@ -1563,12 +1571,6 @@
       const basketElement = document.getElementById('gameBasket');
       const gameArea = document.getElementById('appleGameArea');
       let collisionInterval;
-      let isMuted = false; // 음소거 상태 변수
-      
-      // 오디오 요소들
-      const bgMusic = document.getElementById('bgMusic');
-      const appleSound = document.getElementById('appleSound');
-      const gameOverSound = document.getElementById('gameOverSound');
       
       // 음소거 버튼 이벤트 리스너
       document.getElementById('muteBtn').addEventListener('click', function() {
@@ -1705,7 +1707,7 @@
         basketElement.style.cursor = 'grab';
       }
       
-      <!-- 게임 시작 버튼 -->
+      // 게임 시작 버튼
       document.getElementById('startGameBtn').addEventListener('click', function() {
         // 게임 준비 오버레이 숨기기
         document.getElementById('gameOverlay').classList.add('hidden');
@@ -1738,9 +1740,6 @@
             clearInterval(timerInterval);
             clearInterval(gameInterval);
             clearInterval(collisionInterval);
-            
-            // 배경음악 정지
-            if (bgMusic) bgMusic.pause();
             
             // 성공 효과음 (내장 효과음 사용)
             playSuccessSound();
@@ -1838,9 +1837,6 @@
             } else {
               // 벌레 먹음 - 게임 즉시 종료!
               
-              // 배경음악 정지
-              if (bgMusic) bgMusic.pause();
-              
               // 게임 오버 효과음 재생 (내장 효과음 사용)
               playGameOverSound();
               
@@ -1927,9 +1923,6 @@
         if (appleGameActive) {
           clearInterval(gameInterval);
           clearInterval(collisionInterval);
-          
-          // 배경 음악 정지
-          bgMusic.pause();
         }
         
         switchTab('homeTab');
@@ -2003,6 +1996,3 @@
         });
       });
     });
-  </script>
-</body>
-</html>
