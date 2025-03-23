@@ -904,21 +904,8 @@
         </div>
       </div>
       
-      <!-- 오디오 요소들 -->
-      <audio id="bgMusic" loop preload="auto">
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-        <!-- 대체 배경 음악 - 더 일반적인 호스팅 사이트 사용 -->
-      </audio>
-      
-      <audio id="appleSound" preload="auto">
-        <source src="https://www.soundjay.com/button/sounds/button-09.mp3" type="audio/mpeg">
-        <!-- 대체 효과음 -->
-      </audio>
-      
-      <audio id="gameOverSound" preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/fail-buzzer-01.mp3" type="audio/mpeg">
-        <!-- 대체 게임 오버 사운드 -->
-      </audio>
+      <!-- 오디오 요소들 제거 -->
+      <!-- (더 이상 필요하지 않음) -->
       
       <!-- 광고 시청 화면 -->
       <div id="adWatchTab" class="tab-content p-4 hidden">
@@ -1590,12 +1577,9 @@
         // 음소거 버튼 아이콘 변경
         this.textContent = isMuted ? '🔇' : '🔊';
         
-        // 배경 음악 음소거 설정
-        if (bgMusic) bgMusic.muted = isMuted;
-        
-        // 효과음 적용 (음소거 토글 시 짧은 음)
+        // 토글 효과음
         if (!isMuted) {
-          playTone(660, 80, 0.2);
+          beep(100, 660, 0.1);
         }
       });
       
@@ -1608,10 +1592,6 @@
         // 이전 게임에서 실행 중이던 인터벌 정리
         if (gameInterval) clearInterval(gameInterval);
         if (collisionInterval) clearInterval(collisionInterval);
-        
-        // 배경 음악 정지
-        bgMusic.pause();
-        bgMusic.currentTime = 0;
         
         // 게임 초기화
         appleScore = 0;
@@ -1733,24 +1713,6 @@
         // 게임 활성화
         appleGameActive = true;
         
-        // 배경 음악 재생 (사용자 상호작용으로 재생)
-        try {
-          if (!isMuted) {
-            bgMusic.volume = 0.5;
-            let playPromise = bgMusic.play();
-            
-            // 브라우저 호환성을 위한 처리
-            if (playPromise !== undefined) {
-              playPromise.catch(error => {
-                console.log("음악 재생 실패:", error);
-                // 실패해도 게임은 계속 진행
-              });
-            }
-          }
-        } catch (e) {
-          console.log("오디오 재생 오류:", e);
-        }
-        
         // 타이머 시작
         startGameTimer();
         
@@ -1759,6 +1721,11 @@
         
         // 충돌 감지 업데이트 시작
         collisionInterval = setInterval(checkCollisions, 20);
+        
+        // 시작 효과음
+        beep(100, 440, 0.1);
+        setTimeout(() => beep(100, 554, 0.1), 100);
+        setTimeout(() => beep(200, 659, 0.1), 200);
       });
       
       function startGameTimer() {
@@ -1920,9 +1887,6 @@
         // 인터벌 정리
         clearInterval(gameInterval);
         clearInterval(collisionInterval);
-        
-        // 배경 음악 정지
-        bgMusic.pause();
         
         if (!isGameOver) {
           // 정상 종료 (시간 초과)
