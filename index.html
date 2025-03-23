@@ -293,6 +293,28 @@
     #gameBasket:active {
       cursor: grabbing;
     }
+    
+    /* 음소거 버튼 스타일 */
+    .mute-btn {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      z-index: 10;
+      width: 28px;
+      height: 28px;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .mute-btn:hover {
+      background-color: rgba(255, 255, 255, 0.9);
+    }
   </style>
 </head>
 <body>
@@ -832,6 +854,8 @@
               <div id="gameBasket" style="left: 45%;">🧺</div>
             </div>
             
+            <div class="mute-btn" id="muteBtn">🔊</div>
+            
             <div id="gameTimer" class="absolute top-2 right-2 bg-white bg-opacity-70 text-xs font-bold px-2 py-1 rounded-full">
               30초
             </div>
@@ -879,6 +903,22 @@
           </div>
         </div>
       </div>
+      
+      <!-- 오디오 요소들 -->
+      <audio id="bgMusic" loop preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2023/02/25/audio_b826097a27.mp3?filename=calm-happy-acoustic-guitar-background-music-for-videos-5718.mp3" type="audio/mpeg">
+        <!-- 재미있는 8비트 음악 - 이미 호스팅된 URL 사용 -->
+      </audio>
+      
+      <audio id="appleSound" preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_b0b0b7e0b8.mp3?filename=interface-124464.mp3" type="audio/mpeg">
+        <!-- 팝 사운드 효과 - 이미 호스팅된 URL 사용 -->
+      </audio>
+      
+      <audio id="gameOverSound" preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=wah-wah-sad-trombone-6347.mp3" type="audio/mpeg">
+        <!-- 게임 오버 사운드 - 이미 호스팅된 URL 사용 -->
+      </audio>
       
       <!-- 광고 시청 화면 -->
       <div id="adWatchTab" class="tab-content p-4 hidden">
@@ -1479,6 +1519,33 @@
       const basketElement = document.getElementById('gameBasket');
       const gameArea = document.getElementById('appleGameArea');
       let collisionInterval;
+      let isMuted = false; // 음소거 상태 변수
+      
+      // 오디오 요소들
+      const bgMusic = document.getElementById('bgMusic');
+      const appleSound = document.getElementById('appleSound');
+      const gameOverSound = document.getElementById('gameOverSound');
+      
+      // 음소거 버튼 이벤트 리스너
+      document.getElementById('muteBtn').addEventListener('click', function() {
+        isMuted = !isMuted;
+        
+        // 음소거 버튼 아이콘 변경
+        this.textContent = isMuted ? '🔇' : '🔊';
+        
+        // 모든 오디오 음소거 상태 설정
+        bgMusic.muted = isMuted;
+        appleSound.muted = isMuted;
+        gameOverSound.muted = isMuted;
+        
+        // 효과음 적용
+        if (!isMuted) {
+          // 음소거 해제 시 짧은 효과음
+          const shortBeep = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_9769a76aa1.mp3?filename=notification-sound-7062.mp3');
+          shortBeep.volume = 0.3;
+          shortBeep.play();
+        }
+      });
       
       // 바구니 드래그 관련 변수
       let isDragging = false;
@@ -1489,6 +1556,10 @@
         // 이전 게임에서 실행 중이던 인터벌 정리
         if (gameInterval) clearInterval(gameInterval);
         if (collisionInterval) clearInterval(collisionInterval);
+        
+        // 배경 음악 정지
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
         
         // 게임 초기화
         appleScore = 0;
@@ -1610,6 +1681,12 @@
         // 게임 활성화
         appleGameActive = true;
         
+        // 배경 음악 재생
+        if (!isMuted) {
+          bgMusic.volume = 0.5; // 배경 음악 볼륨 설정
+          bgMusic.play();
+        }
+        
         // 타이머 시작
         startGameTimer();
         
@@ -1630,6 +1707,15 @@
             clearInterval(timerInterval);
             clearInterval(gameInterval);
             clearInterval(collisionInterval);
+            
+            // 성공 효과음
+            if (!isMuted) {
+              bgMusic.pause();
+              const successSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_3b2702f147.mp3?filename=success-1-6297.mp3');
+              successSound.volume = 0.7;
+              successSound.play();
+            }
+            
             endGame();
           }
         }, 1000);
@@ -1703,6 +1789,13 @@
               appleScore++;
               document.getElementById('appleScore').textContent = appleScore;
               
+              // 사과 획득 효과음 재생
+              if (!isMuted) {
+                appleSound.currentTime = 0; // 효과음 처음으로 되감기
+                appleSound.volume = 0.7;
+                appleSound.play();
+              }
+              
               // 점수 증가 애니메이션
               const scoreElement = document.getElementById('appleScore');
               scoreElement.classList.add('score-pop');
@@ -1719,6 +1812,17 @@
               
             } else {
               // 벌레 먹음 - 게임 즉시 종료!
+              
+              // 게임 오버 효과음 재생
+              if (!isMuted) {
+                // 배경음악 정지
+                bgMusic.pause();
+                
+                // 게임오버 효과음 재생
+                gameOverSound.currentTime = 0;
+                gameOverSound.volume = 0.8;
+                gameOverSound.play();
+              }
               
               // 벌레 사라지는 효과 (즉시 더 투명하게 시작)
               item.style.opacity = "0";
@@ -1764,6 +1868,9 @@
         clearInterval(gameInterval);
         clearInterval(collisionInterval);
         
+        // 배경 음악 정지
+        bgMusic.pause();
+        
         if (!isGameOver) {
           // 정상 종료 (시간 초과)
           // 골드 계산 (사과 1개당 3골드)
@@ -1803,6 +1910,9 @@
         if (appleGameActive) {
           clearInterval(gameInterval);
           clearInterval(collisionInterval);
+          
+          // 배경 음악 정지
+          bgMusic.pause();
         }
         
         switchTab('homeTab');
