@@ -1484,6 +1484,10 @@
       let lastX = 0;
       
       function initAppleGame() {
+        // 이전에 실행 중이던 인터벌 정리
+        if (gameInterval) clearInterval(gameInterval);
+        if (gameUpdateInterval) clearInterval(gameUpdateInterval);
+        
         // 게임 초기화
         appleScore = 0;
         bugPenalty = 0;
@@ -1492,6 +1496,7 @@
         gameTimeLeft = 30;
         basketPosition = 45;
         basketElement.style.left = `${basketPosition}%`;
+        isDragging = false;
         
         // UI 초기화
         document.getElementById('appleScore').textContent = appleScore;
@@ -1523,11 +1528,11 @@
         // 타이머 시작
         startGameTimer();
         
-        // 아이템 생성 시작 (더 빠른 간격으로)
-        gameInterval = setInterval(generateFallingItem, 500); // 0.5초마다 아이템 생성
+        // 아이템 생성 시작 (0.8초마다로 조정 - 성능 향상 및 난이도 조절)
+        gameInterval = setInterval(generateFallingItem, 800);
         
-        // 충돌 감지 업데이트 시작 (60fps에 가깝게)
-        gameUpdateInterval = setInterval(checkCollisions, 16);
+        // 충돌 감지 업데이트 시작 (약 30fps - 성능 최적화)
+        gameUpdateInterval = setInterval(checkCollisions, 33);
       });
       
       function startGameTimer() {
@@ -1580,14 +1585,14 @@
         
         const gameArea = document.getElementById('appleGameArea');
         
-        // 한번에 1~3개의 아이템 생성
-        const itemCount = Math.floor(Math.random() * 3) + 1;
+        // 한번에 1~2개의 아이템 생성 (난이도 조정)
+        const itemCount = Math.floor(Math.random() * 2) + 1;
         
         for (let i = 0; i < itemCount; i++) {
           const item = document.createElement('div');
           
-          // 벌레 확률 증가: 60% 사과, 40% 벌레
-          const isApple = Math.random() < 0.6;
+          // 벌레 확률: 70% 사과, 30% 벌레
+          const isApple = Math.random() < 0.7;
           item.textContent = isApple ? '🍎' : '🐛';
           item.className = 'falling-item text-2xl';
           item.dataset.type = isApple ? 'apple' : 'bug';
@@ -1597,14 +1602,16 @@
           item.style.left = `${left}%`;
           
           // 랜덤 속도 (아래로 떨어지는 시간)
-          const fallSpeed = Math.random() * 0.8 + 1.2; // 1.2초 ~ 2.0초 (더 빠르게)
+          const fallSpeed = Math.random() * 1 + 1.5; // 1.5초 ~ 2.5초
           item.style.animationDuration = `${fallSpeed}s`;
           
           gameArea.appendChild(item);
           
           // 바닥에 닿으면 제거
           item.addEventListener('animationend', () => {
-            item.remove();
+            if (!item.dataset.collected) { // 아직 수집되지 않은 경우에만
+              item.remove();
+            }
           });
         }
       }
@@ -1614,20 +1621,25 @@
         if (!appleGameActive) return;
         
         const items = document.querySelectorAll('.falling-item');
+        
+        // 바구니 위치 계산 (% 단위를 픽셀로 변환)
         const gameAreaRect = gameArea.getBoundingClientRect();
-        const basketRect = basketElement.getBoundingClientRect();
+        const basketLeftPx = gameAreaRect.left + (basketPosition / 100) * gameAreaRect.width;
+        const basketRightPx = basketLeftPx + (basketWidth / 100) * gameAreaRect.width;
+        const basketTopPx = gameAreaRect.bottom - 30; // 바구니 상단 위치 추정
+        const basketBottomPx = gameAreaRect.bottom;
         
         items.forEach(item => {
+          // 이미 처리된 아이템은 건너뜀
+          if (item.dataset.collected === "true") return;
+          
           const itemRect = item.getBoundingClientRect();
           
-          // 충돌 감지: 아이템이 바구니와 겹치는지 확인
-          if (!(itemRect.right < basketRect.left || 
-                itemRect.left > basketRect.right || 
-                itemRect.bottom < basketRect.top || 
-                itemRect.top > basketRect.bottom)) {
-            
-            // 이미 처리된 아이템인지 확인 (data-collected 속성으로)
-            if (item.dataset.collected) return;
+          // 충돌 감지: 단순화된 방식
+          if (itemRect.right >= basketLeftPx && 
+              itemRect.left <= basketRightPx && 
+              itemRect.bottom >= basketTopPx && 
+              itemRect.top <= basketBottomPx) {
             
             // 처리된 것으로 표시
             item.dataset.collected = "true";
@@ -1650,6 +1662,7 @@
               setTimeout(() => {
                 item.remove();
               }, 200);
+              
             } else {
               // 벌레 감점
               bugPenalty++;
@@ -1682,15 +1695,21 @@
       
       // 바구니 직접 드래그 기능 추가
       
-      // 마우스 이벤트
-      basketElement.addEventListener('mousedown', startDragging);
-      window.addEventListener('mousemove', dragBasket);
-      window.addEventListener('mouseup', stopDragging);
+      // 초기 설정 - 바구니 드래그 이벤트 등록
+      function setupBasketDrag() {
+        // 마우스 이벤트
+        basketElement.addEventListener('mousedown', startDragging);
+        document.addEventListener('mousemove', dragBasket);
+        document.addEventListener('mouseup', stopDragging);
+        
+        // 터치 이벤트
+        basketElement.addEventListener('touchstart', startDragging);
+        document.addEventListener('touchmove', dragBasket);
+        document.addEventListener('touchend', stopDragging);
+      }
       
-      // 터치 이벤트
-      basketElement.addEventListener('touchstart', startDragging);
-      window.addEventListener('touchmove', dragBasket);
-      window.addEventListener('touchend', stopDragging);
+      // 게임 시작 시 드래그 기능 활성화
+      setupBasketDrag();
       
       // 드래그 시작
       function startDragging(e) {
@@ -1701,14 +1720,13 @@
         
         if (e.type === 'mousedown') {
           startX = e.clientX;
+          lastX = startX;
         } else if (e.type === 'touchstart') {
           startX = e.touches[0].clientX;
+          lastX = startX;
+          // 터치 이벤트에서는 화면 스크롤 방지
+          e.preventDefault();
         }
-        
-        lastX = startX;
-        
-        // 이벤트 전파 방지
-        e.preventDefault();
       }
       
       // 드래그 중
@@ -1720,6 +1738,8 @@
           currentX = e.clientX;
         } else if (e.type === 'touchmove') {
           currentX = e.touches[0].clientX;
+          // 터치 이벤트에서는 화면 스크롤 방지
+          e.preventDefault();
         }
         
         // 이동 거리 계산
@@ -1741,9 +1761,6 @@
         
         // 바구니 위치 적용
         basketElement.style.left = `${basketPosition}%`;
-        
-        // 이벤트 전파 방지
-        e.preventDefault();
       }
       
       // 드래그 종료
